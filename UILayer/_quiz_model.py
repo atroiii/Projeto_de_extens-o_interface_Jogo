@@ -45,23 +45,6 @@ TEMAS = [
     }
 ]
 
-#CORES
-COR_BG = "#0f0f1a"
-COR_CARD = "#1a1a2e"
-COR_BOTAO = "#16213e"
-COR_HOVER = "#0f3460"
-
-COR_TEXTO = "#eaeaea"
-COR_TITULO = "#ffffff"
-
-COR_OURO = "#00f5d4"
-COR_BUZZER = "#ff006e"
-
-COR_P1 = "#3a86ff"
-COR_P2 = "#ff006e"
-
-COR_CERTO = "#06d6a0"
-COR_ERRADO = "#ef476f"
 
 
 class QuizUI(tk.Tk):
@@ -126,7 +109,7 @@ class QuizUI(tk.Tk):
                          relief="flat", cursor="hand2",
                          padx=10, pady=6, **kw)
     
-    def _atualizar_portas(self):  # 👈 TEM QUE EXISTIR
+    def _atualizar_portas(self):  
         portas = self.model.serial_manager.listar_portas()
         self._menu_portas["menu"].delete(0, "end")
         for p in portas:
@@ -171,14 +154,14 @@ class QuizUI(tk.Tk):
     def _trocar_tema(self):
         self.tema_index = (self.tema_index + 1) % len(TEMAS)
         self._aplicar_tema()
-        self._tela_inicial()  # redesenha a tela
+        self._tela_inicial()  
 
-        # ── Tela Inicial ──────────────────────────────────────────
+        #  Tela Inicial 
     
     def _tela_inicial(self):
         self._limpar()
 
-        # ── TOPO (HEADER) ─────────────────────────
+        #  TOPO (HEADER) 
         topo = tk.Frame(self, bg=COR_BG)
         topo.pack(fill="x", pady=40)
 
@@ -188,7 +171,7 @@ class QuizUI(tk.Tk):
         self._label(topo, "10 perguntas · Quem errar passa a vez!",
                     cor=COR_TEXTO, fonte=self.fonte_pequena).pack(pady=20)
 
-        # ── MEIO (CONTEÚDO CENTRAL) ──────────────
+        #  MEIO 
         meio = tk.Frame(self, bg=COR_BG)
         meio.pack(expand=True)
 
@@ -214,7 +197,7 @@ class QuizUI(tk.Tk):
                     relief="flat", justify="center",
                     width=40).pack(pady=30, ipady=25)
 
-        # Arduino (mais centralizado tipo card)
+        # Arduino
         arduino_card = self._card(meio, padx=40, pady=30)
         arduino_card.pack(pady=30)
 
@@ -245,7 +228,7 @@ class QuizUI(tk.Tk):
                     cor_bg="#222",
                     fonte=self.fonte_pequena).pack(side="left")
 
-        # ── RODAPÉ (BOTÃO) ───────────────────────
+        # RODAPE
         baixo = tk.Frame(self, bg=COR_BG)
         baixo.pack(pady=40)
 
