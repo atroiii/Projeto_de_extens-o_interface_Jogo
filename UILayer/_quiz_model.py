@@ -188,7 +188,17 @@ class QuizUI(tk.Tk):
             w.destroy()
 
     def _card(self, master, **kw):
-        return tk.Frame(master, bg=COR_CARD, relief="flat", **kw)
+        px = kw.pop('padx', 20)
+        py = kw.pop('pady', 20)
+        
+        return tk.Frame(master, 
+                        bg=COR_CARD, 
+                        relief="flat", 
+                        highlightthickness=1,       
+                        highlightbackground="#34495e", 
+                        padx=px, 
+                        pady=py, 
+                        **kw)
 
     def _label(self, master, texto, cor=COR_TEXTO, fonte=None, **kw):
         if fonte is None:
@@ -309,13 +319,14 @@ class QuizUI(tk.Tk):
         centro = tk.Frame(self, bg=COR_BG)
         centro.pack(expand=True)
 
-        #Jogadores
+        # Jogadores
         row_nomes = tk.Frame(centro, bg=COR_BG)
         row_nomes.pack(pady=30)
 
         for i, (var, cor) in enumerate([(self.nome_p1, COR_P1),
                                         (self.nome_p2, COR_P2)]):
 
+            # Criamos o card usando sua nova função _card
             card = self._card(row_nomes, padx=40, pady=30)
             card.grid(row=0, column=i, padx=40)
 
@@ -324,12 +335,18 @@ class QuizUI(tk.Tk):
             self._label(card, f"{emoji} Jogador {i + 1}",
                         cor=cor, fonte=self.fonte_grande).pack()
 
-            tk.Entry(card, textvariable=var,
-                    font=self.fonte_media,
-                    bg=COR_BOTAO, fg=COR_TITULO,
-                    insertbackground=COR_TITULO,
-                    relief="flat", justify="center",
-                    width=20).pack(pady=15, ipady=10)
+            # Guardamos o Entry em uma variável para fazer o bind
+            entry = tk.Entry(card, textvariable=var,
+                            font=self.fonte_media,
+                            bg=COR_BOTAO, fg=COR_TITULO,
+                            insertbackground=COR_TITULO,
+                            relief="flat", justify="center",
+                            width=20)
+            entry.pack(pady=15, ipady=10)
+
+            entry.bind("<FocusIn>", lambda e, c=card, cor_foco=cor: c.config(highlightbackground=cor_foco, highlightthickness=3))
+            entry.bind("<FocusOut>", lambda e, c=card: c.config(highlightbackground="#34495e", highlightthickness=1))
+            # ---------------------------------------
 
         #Arduino
         arduino_card = self._card(centro, padx=30, pady=20)
@@ -401,17 +418,17 @@ class QuizUI(tk.Tk):
                         f"🔴 {dados['nome_p2']}: {dados['pontos_p2']}",
                         cor="#aaa", fonte=self.fonte_pequena).pack(side="right")
 
-            # 2. BARRA DE PROGRESSO (Configurada para o Rodapé)
-            # Criamos o container primeiro para ele reservar o espaço lá embaixo
+            # 2. BARRA DE PROGRESSO
+            
             progresso_container = tk.Frame(self, bg=COR_CARD, height=12)
-            # side="bottom" joga para o fim. pady=(0, 40) deixa 40px de respiro do fundo.
+            
             progresso_container.pack(side="bottom", fill="x", padx=60, pady=(0, 40))
 
             largura_proporcional = dados['numero'] / dados['total']
             progresso_fill = tk.Frame(progresso_container, bg=COR_OURO, height=12)
             progresso_fill.place(relwidth=largura_proporcional, relx=0)
 
-            # 3. Resto do Conteúdo (Centro)
+            
             tk.Frame(self, bg=COR_BUZZER, height=3).pack(fill="x", padx=20)
 
             c = self._card(self, padx=24, pady=18)
