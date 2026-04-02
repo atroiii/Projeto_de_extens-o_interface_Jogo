@@ -3,6 +3,15 @@ import tkinter as tk
 from tkinter import font as tkfont
 from Service.quiz_logica import QuizModel
 
+
+COR_TEXTO = "black"
+COR_BOTAO = "#3498db"
+COR_BG = "#ecf0f1"
+COR_CERTO = "#2ecc71"  # verde para resposta correta
+COR_ERRADO = "#e74c3c"  # vermelho para resposta errada
+FONTE_PADRAO = ("Arial", 12)
+
+
 TEMAS = [
     {
         "nome": "Jogo",
@@ -50,14 +59,23 @@ TEMAS = [
 class QuizUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Quiz – Dois Jogadores (Arduino Buzzer)")
-        self.geometry("1920x1080")
-        self.resizable(False, False)
+        self.title("Quiz ")
+
+
+        self.state("zoomed")
+
+
+        self.resizable(True, True)
+
         self.configure(bg=COR_BG)
 
         self.tema_index = 0
         self._aplicar_tema()
 
+
+        self.bind("<F11>", lambda e: self.attributes("-fullscreen", not self.attributes("-fullscreen")))
+
+        self.bind("<Escape>", lambda e: self.attributes("-fullscreen", False))
 
         # Configurar fonts
         fonte_base = "Comic Sans Ms"
@@ -201,7 +219,7 @@ class QuizUI(tk.Tk):
         arduino_card = self._card(meio, padx=40, pady=30)
         arduino_card.pack(pady=30)
 
-        self._label(arduino_card, "⚡ Conexão Arduino",
+        self._label(arduino_card, "⚡ Conexão Botões",
                     cor=COR_BUZZER, fonte=self.fonte_grande).pack()
 
         porta_row = tk.Frame(arduino_card, bg=COR_CARD)
@@ -246,9 +264,8 @@ class QuizUI(tk.Tk):
                     fonte=self.fonte_pequena
                 ).pack(pady=10)
 
-    # ── Callbacks do Model ────────────────────────────────────
     def _on_pergunta_carregada(self, **dados):
-        """Exibe tela de buzzer"""
+        """Exibe tela de buzzer com as alternativas como botões"""
         self._limpar()
         self.model.aguardando_buzzer = True
         self.model.respondendo = False
@@ -269,6 +286,17 @@ class QuizUI(tk.Tk):
         self._label(c, dados['pergunta'], cor=COR_TITULO, fonte=self.fonte_grande,
                     wraplength=700, justify="center").pack()
 
+        # Exibir alternativas como botões (desabilitados)
+        self.botoes_opcao = []
+        for i, texto in enumerate(dados['opcoes']):
+            letras = ["A", "B", "C", "D"]
+            btn = self._botao(self, f"  {letras[i]})  {texto}  ",
+                              lambda idx=i: None,  # Desabilitado nesta fase
+                              cor_bg=COR_BOTAO, anchor="w")
+            btn.config(state="disabled")
+            btn.pack(fill="x", padx=20, pady=4, ipady=8)
+            self.botoes_opcao.append(btn)
+
         wait = tk.Frame(self, bg=COR_BG)
         wait.pack(pady=16)
         self._label(wait, "⚡  QUEM SABE?", cor=COR_BUZZER,
@@ -277,7 +305,7 @@ class QuizUI(tk.Tk):
                     cor="#aaa", fonte=self.fonte_pequena).pack(pady=(4, 0))
 
     def _on_buzzer_ativado(self, **dados):
-        """Exibe tela de resposta"""
+        """Exibe tela de resposta e ativa os botões"""
         self._limpar()
         self.model.respondendo = True
 
