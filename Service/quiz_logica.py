@@ -105,6 +105,8 @@ class QuizModel:
         self.respondendo = False
         self.aguardando_buzzer = False
 
+        self.historico_sessao = []
+
         self.serial_manager = SerialManager(callback_buzzer=self._on_buzzer)
 
         self.callbacks = {
@@ -118,6 +120,15 @@ class QuizModel:
     def acionar_buzzer_teclado(self, jogador):
         self._on_buzzer(jogador)
 
+    
+    def registrar_fim_de_jogo(self):
+        """Armazena o resultado na lista de histórico da sessão"""
+        resultado = {
+            "p1": {"nome": self.nome_p1, "pontos": self.pontos[0]},
+            "p2": {"nome": self.nome_p2, "pontos": self.pontos[1]},
+            "vencedor": self.nome_p1 if self.pontos[0] > self.pontos[1] else (self.nome_p2 if self.pontos[1] > self.pontos[0] else "Empate")
+        }
+        self.historico_sessao.append(resultado)
 
     def registrar_callback(self, evento, func):
         if evento in self.callbacks:
@@ -215,6 +226,7 @@ class QuizModel:
         self.q_index += 1
 
         if self.q_index >= TOTAL_PERGUNTAS:
+            self.registrar_fim_de_jogo()
             self._emitir('jogo_finalizado',
                          nome_p1=self.nome_p1,
                          nome_p2=self.nome_p2,

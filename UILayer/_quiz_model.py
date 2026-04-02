@@ -72,6 +72,8 @@ class QuizUI(tk.Tk):
         self.tema_index = 0
         self._aplicar_tema()
 
+        self.bind("<F1>", lambda e: self.model.acionar_buzzer_teclado(0))
+        self.bind("<F2>", lambda e: self.model.acionar_buzzer_teclado(1))
 
         self.bind("<F11>", lambda e: self.attributes("-fullscreen", not self.attributes("-fullscreen")))
 
@@ -116,16 +118,24 @@ class QuizUI(tk.Tk):
         return tk.Label(master, text=texto, bg=master["bg"],
                         fg=cor, font=fonte, **kw)
 
-    def _botao(self, master, texto, cmd, cor_bg=COR_BOTAO,
-               cor_fg=COR_TEXTO, fonte=None, **kw):
+    def _botao(self, master, texto, cmd, cor_bg=None,
+            cor_fg=None, fonte=None, **kw):
+
         if fonte is None:
             fonte = self.fonte_opcao
+
+        if cor_bg is None:
+            cor_bg = COR_BOTAO
+
+        if cor_fg is None:
+            cor_fg = COR_TEXTO
+
         return tk.Button(master, text=texto, command=cmd,
-                         bg=cor_bg, fg=cor_fg, font=fonte,
-                         activebackground=COR_HOVER,
-                         activeforeground=COR_TITULO,
-                         relief="flat", cursor="hand2",
-                         padx=10, pady=6, **kw)
+                        bg=cor_bg, fg=cor_fg, font=fonte,
+                        activebackground=COR_HOVER,
+                        activeforeground=COR_TITULO,
+                        relief="flat", cursor="hand2",
+                        padx=10, pady=6, **kw)
     
     def _atualizar_portas(self):  
         portas = self.model.serial_manager.listar_portas()
@@ -155,6 +165,9 @@ class QuizUI(tk.Tk):
         global COR_TEXTO, COR_TITULO, COR_OURO, COR_BUZZER
         global COR_P1, COR_P2
 
+        COR_CERTO = "#2ecc71" 
+        COR_ERRADO = "#e74c3c"
+
         COR_BG = tema["BG"]
         COR_CARD = tema["CARD"]
         COR_BOTAO = tema["BOTAO"]
@@ -168,62 +181,87 @@ class QuizUI(tk.Tk):
 
         self.configure(bg=COR_BG)
 
+    def _exibir_historico_volatil(self):
+        janela = tk.Toplevel(self)
+        janela.title("Resultados da Sessão")
+        janela.geometry("450x500")
+        janela.configure(bg=COR_BG)
+
+        self._label(janela, "📊 RESULTADOS ATUAIS", cor=COR_OURO, fonte=self.fonte_grande).pack(pady=20)
+
+        if not self.model.historico_sessao:
+            self._label(janela, "Nenhum jogo finalizado nesta sessão.", cor="#888").pack(pady=50)
+            return
+
+        container = tk.Frame(janela, bg=COR_BG)
+        container.pack(fill="both", expand=True, padx=20)
+
+        #Ordenacao
+        for i, jogo in enumerate(reversed(self.model.historico_sessao)):
+            card = self._card(container)
+            card.pack(fill="x", pady=5, ipady=5)
+            
+            texto = f"JOGO {len(self.model.historico_sessao) - i}\n" \
+                    f"{jogo['p1']['nome']} [{jogo['p1']['pontos']}] x [{jogo['p2']['pontos']}] {jogo['p2']['nome']}"
+            
+            self._label(card, texto, fonte=self.fonte_pequena).pack()
+            self._label(card, f"Vencedor: {jogo['vencedor']}", cor=COR_OURO, fonte=self.fonte_pequena).pack()
 
     def _trocar_tema(self):
         self.tema_index = (self.tema_index + 1) % len(TEMAS)
         self._aplicar_tema()
-        self._tela_inicial()  
+        self._tela_inicial()
 
         #  Tela Inicial 
     
     def _tela_inicial(self):
         self._limpar()
 
-        #  TOPO (HEADER) 
+        #TOPO 
         topo = tk.Frame(self, bg=COR_BG)
-        topo.pack(fill="x", pady=40)
+        topo.pack(fill="x", pady=30)
 
         self._label(topo, "🎯 QUIZ DOIS JOGADORES",
                     cor=COR_OURO, fonte=self.fonte_titulo).pack()
 
         self._label(topo, "10 perguntas · Quem errar passa a vez!",
-                    cor=COR_TEXTO, fonte=self.fonte_pequena).pack(pady=20)
+                    cor=COR_TEXTO, fonte=self.fonte_pequena).pack(pady=10)
 
-        #  MEIO 
-        meio = tk.Frame(self, bg=COR_BG)
-        meio.pack(expand=True)
+        #CONTEÚDO CENTRAL
+        centro = tk.Frame(self, bg=COR_BG)
+        centro.pack(expand=True)
 
-        # Jogadores
-        row_nomes = tk.Frame(meio, bg=COR_BG)
-        row_nomes.pack(pady=40)
+        #Jogadores
+        row_nomes = tk.Frame(centro, bg=COR_BG)
+        row_nomes.pack(pady=30)
 
         for i, (var, cor) in enumerate([(self.nome_p1, COR_P1),
                                         (self.nome_p2, COR_P2)]):
 
-            c = self._card(row_nomes, padx=40, pady=30)
-            c.grid(row=0, column=i, padx=40)
+            card = self._card(row_nomes, padx=40, pady=30)
+            card.grid(row=0, column=i, padx=40)
 
             emoji = "🔵" if i == 0 else "🔴"
 
-            self._label(c, f"{emoji} Jogador {i + 1}",
+            self._label(card, f"{emoji} Jogador {i + 1}",
                         cor=cor, fonte=self.fonte_grande).pack()
 
-            tk.Entry(c, textvariable=var,
+            tk.Entry(card, textvariable=var,
                     font=self.fonte_media,
-                    bg="#0f3460", fg=COR_TITULO,
+                    bg=COR_BOTAO, fg=COR_TITULO,
                     insertbackground=COR_TITULO,
                     relief="flat", justify="center",
-                    width=40).pack(pady=30, ipady=25)
+                    width=20).pack(pady=15, ipady=10)
 
-        # Arduino
-        arduino_card = self._card(meio, padx=40, pady=30)
-        arduino_card.pack(pady=30)
+        #Arduino
+        arduino_card = self._card(centro, padx=30, pady=20)
+        arduino_card.pack(pady=20)
 
-        self._label(arduino_card, "⚡ Conexão Botões",
+        self._label(arduino_card, "⚡ Conexão Arduino",
                     cor=COR_BUZZER, fonte=self.fonte_grande).pack()
 
         porta_row = tk.Frame(arduino_card, bg=COR_CARD)
-        porta_row.pack(pady=20)
+        porta_row.pack(pady=10)
 
         portas = self.model.serial_manager.listar_portas()
         if portas:
@@ -246,23 +284,28 @@ class QuizUI(tk.Tk):
                     cor_bg="#222",
                     fonte=self.fonte_pequena).pack(side="left")
 
-        # RODAPE
-        baixo = tk.Frame(self, bg=COR_BG)
-        baixo.pack(pady=40)
-
-        self._botao(baixo, "  COMEÇAR  ",
+        #BOTÃO COMEÇAR 
+        self._botao(self, "  COMEÇAR  ",
                     self._iniciar_jogo,
                     cor_bg=COR_OURO,
                     cor_fg="#1a1a2e",
-                    fonte=self.fonte_grande).pack(ipadx=40, ipady=30)
-        
+                    fonte=self.fonte_grande).place(relx=0.50, rely=0.90, anchor="center")
+
+        #BOTÃO TEMA
         self._botao(
-                    baixo,
-                    "🎨 Tema",
-                    self._trocar_tema,
-                    cor_bg=COR_BOTAO,
-                    fonte=self.fonte_pequena
-                ).pack(pady=10)
+            self,
+            "🎨",
+            self._trocar_tema,
+            fonte=tkfont.Font(size=40)
+        ).place(relx=0.98, rely=0.95, anchor="se", width=70, height=70)
+        
+        #BOTAO HISTORICO
+        self._botao(self, "📊 PLACAR DA SESSÃO", 
+            self._exibir_historico_volatil,
+            cor_bg=COR_CARD, 
+            fonte=self.fonte_pequena).place(relx=0.02, rely=0.95, anchor="sw")
+        
+    #fim tela inicial
 
     def _on_pergunta_carregada(self, **dados):
         """Exibe tela de buzzer com as alternativas como botões"""
