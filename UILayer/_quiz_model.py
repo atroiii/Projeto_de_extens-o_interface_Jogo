@@ -386,44 +386,55 @@ class QuizUI(tk.Tk):
     #fim tela inicial
 
     def _on_pergunta_carregada(self, **dados):
-        """Exibe tela de buzzer com as alternativas como botões"""
-        self._limpar()
-        self.model.aguardando_buzzer = True
-        self.model.respondendo = False
+            """Exibe tela de buzzer com as alternativas como botões"""
+            self._limpar()
+            self.model.aguardando_buzzer = True
+            self.model.respondendo = False
 
-        hdr = tk.Frame(self, bg=COR_BG)
-        hdr.pack(fill="x", padx=20, pady=(18, 6))
-        self._label(hdr, f"Pergunta {dados['numero']} de {dados['total']}",
-                    cor="#aaa", fonte=self.fonte_pequena).pack(side="left")
-        self._label(hdr,
-                    f"🔵 {dados['nome_p1']}: {dados['pontos_p1']}   "
-                    f"🔴 {dados['nome_p2']}: {dados['pontos_p2']}",
-                    cor="#aaa", fonte=self.fonte_pequena).pack(side="right")
+            # 1. Cabeçalho (Topo)
+            hdr = tk.Frame(self, bg=COR_BG)
+            hdr.pack(fill="x", padx=20, pady=(18, 6))
+            self._label(hdr, f"Pergunta {dados['numero']} de {dados['total']}",
+                        cor="#aaa", fonte=self.fonte_pequena).pack(side="left")
+            self._label(hdr,
+                        f"🔵 {dados['nome_p1']}: {dados['pontos_p1']}   "
+                        f"🔴 {dados['nome_p2']}: {dados['pontos_p2']}",
+                        cor="#aaa", fonte=self.fonte_pequena).pack(side="right")
 
-        tk.Frame(self, bg=COR_BUZZER, height=3).pack(fill="x", padx=20)
+            # 2. BARRA DE PROGRESSO (Configurada para o Rodapé)
+            # Criamos o container primeiro para ele reservar o espaço lá embaixo
+            progresso_container = tk.Frame(self, bg=COR_CARD, height=12)
+            # side="bottom" joga para o fim. pady=(0, 40) deixa 40px de respiro do fundo.
+            progresso_container.pack(side="bottom", fill="x", padx=60, pady=(0, 40))
 
-        c = self._card(self, padx=24, pady=18)
-        c.pack(fill="x", padx=20, pady=12)
-        self._label(c, dados['pergunta'], cor=COR_TITULO, fonte=self.fonte_grande,
-                    wraplength=700, justify="center").pack()
+            largura_proporcional = dados['numero'] / dados['total']
+            progresso_fill = tk.Frame(progresso_container, bg=COR_OURO, height=12)
+            progresso_fill.place(relwidth=largura_proporcional, relx=0)
 
-        # Exibir alternativas como botões (desabilitados)
-        self.botoes_opcao = []
-        for i, texto in enumerate(dados['opcoes']):
-            letras = ["A", "B", "C", "D"]
-            btn = self._botao(self, f"  {letras[i]})  {texto}  ",
-                              lambda idx=i: None,  # Desabilitado nesta fase
-                              cor_bg=COR_BOTAO, anchor="w")
-            btn.config(state="disabled")
-            btn.pack(fill="x", padx=20, pady=4, ipady=8)
-            self.botoes_opcao.append(btn)
+            # 3. Resto do Conteúdo (Centro)
+            tk.Frame(self, bg=COR_BUZZER, height=3).pack(fill="x", padx=20)
 
-        wait = tk.Frame(self, bg=COR_BG)
-        wait.pack(pady=16)
-        self._label(wait, "⚡  QUEM SABE?", cor=COR_BUZZER,
-                    fonte=self.fonte_buzzer).pack()
-        self._label(wait, "Aperte o botão no Arduino para responder!",
-                    cor="#aaa", fonte=self.fonte_pequena).pack(pady=(4, 0))
+            c = self._card(self, padx=24, pady=18)
+            c.pack(fill="x", padx=20, pady=12)
+            self._label(c, dados['pergunta'], cor=COR_TITULO, fonte=self.fonte_grande,
+                        wraplength=700, justify="center").pack()
+
+            self.botoes_opcao = []
+            for i, texto in enumerate(dados['opcoes']):
+                letras = ["A", "B", "C", "D"]
+                btn = self._botao(self, f"  {letras[i]})  {texto}  ",
+                                lambda idx=i: None,
+                                cor_bg=COR_BOTAO, anchor="w")
+                btn.config(state="disabled")
+                btn.pack(fill="x", padx=20, pady=4, ipady=8)
+                self.botoes_opcao.append(btn)
+
+            wait = tk.Frame(self, bg=COR_BG)
+            wait.pack(pady=16)
+            self._label(wait, "⚡  QUEM SABE?", cor=COR_BUZZER,
+                        fonte=self.fonte_buzzer).pack()
+            self._label(wait, "Aperte o botão no Arduino para responder!",
+                        cor="#aaa", fonte=self.fonte_pequena).pack(pady=(4, 0))
 
     def _on_buzzer_ativado(self, **dados):
         """Exibe tela de resposta e ativa os botões"""
@@ -482,6 +493,16 @@ class QuizUI(tk.Tk):
         """Exibe tela de segunda chance"""
         self._limpar()
         self.model.respondendo = True
+
+        # --- BARRA---
+        progresso_container = tk.Frame(self, bg=COR_CARD, height=10)
+        progresso_container.place(relx=0.5, rely=0.9, anchor="center", relwidth=0.8)
+
+        
+        total = 10 
+        largura = (self.model.q_index + 1) / total
+        
+        tk.Frame(progresso_container, bg=COR_OURO, height=10).place(relwidth=largura, relx=0)
 
         q = self.model.perguntas[self.model.q_index]
         cor = COR_P1 if self.model.vez_atual == 0 else COR_P2
