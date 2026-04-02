@@ -115,6 +115,10 @@ class QuizModel:
             'jogo_finalizado': None,
         }
 
+    def acionar_buzzer_teclado(self, jogador):
+        self._on_buzzer(jogador)
+
+
     def registrar_callback(self, evento, func):
         if evento in self.callbacks:
             self.callbacks[evento] = func
