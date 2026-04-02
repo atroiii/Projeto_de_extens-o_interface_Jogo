@@ -143,6 +143,7 @@ class QuizModel:
         q = self.perguntas[self.q_index]
         self._emitir('pergunta_carregada',
                      pergunta=q['pergunta'],
+                     opcoes=q['opcoes'],  # <-- agora as alternativas são enviadas
                      numero=self.q_index + 1,
                      total=TOTAL_PERGUNTAS,
                      nome_p1=self.nome_p1,
