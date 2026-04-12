@@ -1,615 +1,336 @@
 """Docs."""
 
-
-from typing import Final
-import tkinter as tk
-from tkinter import font as tkfont
-from service.quiz_logica import QuizModel
-import platform
+from typing import Final, Optional, Callable
+from enum import IntEnum, auto
 from settings import Settings
-from themes import TEMAS
+from theme import Theme
+from tkinter import messagebox
+import tkinter as tk
+import platform
+from service.quizmodel import QuizModel, SerialManager
+from callback import Callback
+from quizfont import QuizFont, tkfont
 
 
 class QuizUI(tk.Tk):
-    def __init__(self):
+    """Docs."""
+
+    class Create:
+        @staticmethod
+        def Card(master, **kw) -> tk.Frame:
+            """Docs."""
+
+            return tk.Frame(
+                master,
+                bg=Settings.COR_CARD,
+                relief=Settings.Card.RELIEF,
+                highlightthickness=1,
+                highlightbackground="#34495e",
+                padx=kw.pop("padx", 20),
+                pady=kw.pop("pady", 20),
+                **kw,
+            )
+
+        @staticmethod
+        def Label(
+            master,
+            text: str,
+            color: str = Settings.COR_TEXTO,
+            font: Optional[tkfont.Font]=None,
+            **kw
+        ) -> tk.Label:
+            """Docs."""
+            if not font: font = QuizFont.median
+
+            return tk.Label(
+                master, text=text, bg=master["bg"], fg=color, font=font, **kw
+            )
+
+        @staticmethod
+        def Button(
+            master,
+            text: str,
+            cmd: str|Callable,
+            bg_color: str = Settings.COR_BOTAO,
+            fg_color: str = Settings.COR_TEXTO,
+            font: Optional[tkfont.Font]=None,
+            **kw
+        ) -> tk.Button:
+            """Docs."""
+            if not font: font = QuizFont.choice
+
+            return tk.Button(
+                master,
+                text=text,
+                command=cmd,
+                bg=bg_color,
+                fg=fg_color,
+                font=font,
+                activebackground=Settings.COR_HOVER,
+                activeforeground=Settings.COR_TITULO,
+                relief=Settings.Button.RELIEF,
+                cursor=Settings.Button.CURSOR,
+                padx=Settings.Button.PADX,
+                pady=Settings.Button.PADY,
+                **kw,
+            )
+
+    class MenuEntry:
+        player_1_name: tk.StringVar
+        player_2_name: tk.StringVar
+        serial_port: tk.StringVar
+
+        @staticmethod
+        def init() -> None:
+            QuizUI.MenuEntry.player_1_name = tk.StringVar(value="Jogador 1")
+            QuizUI.MenuEntry.player_2_name = tk.StringVar(value="Jogador 2")
+            QuizUI.MenuEntry.serial_port = tk.StringVar(value="")
+    
+    class Screen:
+        @staticmethod
+        def menu(root) -> None:
+            root.clear()
+
+            top: Final[tk.Frame] = tk.Frame(root, bg=Settings.COR_BG)
+            top.pack(fill="x", pady=30)
+
+            QuizUI.Create.Label(
+                top,
+                Settings.Menu.TITLE,
+                color=Settings.COR_OURO,
+                font=QuizFont.title,
+            ).pack()
+
+            QuizUI.Create.Label(
+                top,
+                Settings.Menu.SUBTITLE,
+                color=Settings.COR_TEXTO,
+                font=QuizFont.small,
+            ).pack(pady=10)
+
+            # CONTEÚDO CENTRAL
+            center = tk.Frame(root, bg=Settings.COR_BG)
+            center.pack(expand=True)
+
+            # Jogadores
+            row_names = tk.Frame(center, bg=Settings.COR_BG)
+            row_names.pack(pady=30)
+
+            for i, (var, color) in enumerate([(QuizUI.MenuEntry.player_1_name, Settings.COR_P1), (QuizUI.MenuEntry.player_2_name, Settings.COR_P2)]):
+                card = QuizUI.Create.Card(row_names, padx=40, pady=30)
+                card.grid(row=0, column=i, padx=40)
+            
+                emoji = Settings.Menu.PLAYER_1_ICON if i == 0 else Settings.Menu.PLAYER_2_ICON
+            
+                QuizUI.Create.Label(
+                    card, f"{emoji} Jogador {i + 1}", color=color, font=QuizFont.big
+                ).pack()
+            
+                entry: tk.Entry = tk.Entry(
+                    card,
+                    textvariable=var,
+                    font=QuizFont.median,
+                    bg=Settings.COR_BOTAO,
+                    fg=Settings.COR_TITULO,
+                    insertbackground=Settings.COR_TITULO,
+                    relief="flat",
+                    justify="center",
+                    width=20,
+                )
+                entry.pack(pady=15, ipady=10)
+
+                def __focus_in(e, c=card, color_foco=color) -> None:
+                    c.config(
+                        highlightbackground=color_foco, highlightthickness=3
+                    )
+
+                def __focus_out(e, c=card):
+                    c.config(
+                        highlightbackground="#34495e", highlightthickness=1
+                    )
+
+                entry.bind("<FocusIn>", __focus_in)
+                entry.bind("<FocusOut>", __focus_out)
+
+            # Arduino
+            arduino_card = QuizUI.Create.Card(center, padx=30, pady=20)
+            arduino_card.pack(pady=20)
+            
+            QuizUI.Create.Label(
+                arduino_card,
+                Settings.Menu.ARDUINO_CONNECTION_MSG,
+                color=Settings.COR_BUZZER,
+                font=QuizFont.big,
+            ).pack()
+            
+            port_row = tk.Frame(arduino_card, bg=Settings.COR_CARD)
+            port_row.pack(pady=10)
+            
+            ports = SerialManager.ports_list()
+            if ports:
+                QuizUI.MenuEntry.serial_port.set(ports[0])
+            
+            QuizUI.Create.Label(port_row, "Porta COM:", color="#aaa", font=QuizFont.small).pack(
+                side="left", padx=5
+            )
+            
+            options = ports if ports else ["(nenhuma)"]
+            
+            root._menu_ports = tk.OptionMenu(port_row, QuizUI.MenuEntry.serial_port, *options)
+            root._menu_ports.config(
+                bg=Settings.COR_BOTAO,
+                fg=Settings.COR_TEXTO,
+                font=QuizFont.small,
+                relief="flat",
+                activebackground=Settings.COR_HOVER,
+                highlightthickness=0,
+            )
+            root._menu_ports["menu"].config(bg=Settings.COR_BOTAO, fg=Settings.COR_TEXTO)
+            root._menu_ports.pack(side="left", padx=10)
+            
+            QuizUI.Create.Button(
+                port_row,
+                "Atualizar",
+                root.port_update,
+                bg_color="#222",
+                font=QuizFont.small,
+            ).pack(side="left")
+            
+            # BOTÃO COMEÇAR
+            QuizUI.Create.Button(
+                root,
+                "  COMEÇAR  ",
+                root.game_init,
+                bg_color=Settings.COR_OURO,
+                fg_color="#1a1a2e",
+                font=QuizFont.big,
+            ).place(relx=0.50, rely=0.90, anchor="center")
+            
+            # BOTÃO TEMA
+            QuizUI.Create.Button(root, "🎨", Theme.chance, font=tkfont.Font(size=40)).place(
+                relx=0.98, rely=0.95, anchor="se", width=70, height=70
+            )
+            
+            # BOTAO HISTORICO
+            QuizUI.Create.Button(
+                root,
+                "📊 PLACAR DA SESSÃO",
+                root.history_show,
+                bg_color=Settings.COR_CARD,
+                font=QuizFont.small,
+            ).place(relx=0.02, rely=0.95, anchor="sw")
+
+        @staticmethod
+        def try_again(root) -> None:
+            raise NotImplementedError("ERROR: try_again")
+
+
+    def __init__(self) -> None:
         super().__init__()
-        self.title("Quiz ")
+        self.__keybinds()
+        self.__window_config()
+        QuizFont.init()
+        QuizUI.MenuEntry.init()
+        self.__regiter_callbacks()
+        QuizUI.Screen.menu(self)
 
-        if platform.system() == "Linux":
-            self.attributes("-zoomed", True)
-        else:
-            self.state("zoomed")
+        self._menu_ports: tk.OptionMenu|None = None
 
-        self.resizable(True, True)
+    def __regiter_callbacks(self) -> None:
+        """Docs."""
 
-        self.configure(bg=Settings.COR_BG)
+        QuizModel.register_callback(Callback.QUESTION_LOADED, self.__on_question_loaded)
+        QuizModel.register_callback(
+            Callback.BUZZER_ACTIVATED, self.__on_buzzer_activated
+        )
+        QuizModel.register_callback(
+            Callback.ANSWER_PROCESSED, self.__on_answer_processed
+        )
+        QuizModel.register_callback(Callback.GAME_FINISHED, self.__on_game_fisished)
 
-        self.tema_index = 0
-        self._aplicar_tema()
-
-        self.bind("<F1>", lambda e: self.model.acionar_buzzer_teclado(0))
-        self.bind("<F2>", lambda e: self.model.acionar_buzzer_teclado(1))
+    def __keybinds(self) -> None:
+        """Configura os atalhos de teclado."""
 
         self.bind(
-            "<F11>",
+            Settings.KEY_BUZZER_ACTIVATE_0, lambda e: QuizModel.buzzer_activate(0)
+        )
+        self.bind(
+            Settings.KEY_BUZZER_ACTIVATE_1, lambda e: QuizModel.buzzer_activate(1)
+        )
+
+        self.bind(
+            Settings.KEY_WINDOW_FULLSCREEN,
             lambda e: self.attributes(
                 "-fullscreen", not self.attributes("-fullscreen")
             ),
         )
 
-        self.bind("<Escape>", lambda e: self.attributes("-fullscreen", False))
-
-        # Configurar fonts
-        fonte_base = "Comic Sans Ms"
-        self.fonte_titulo = tkfont.Font(family="Impact", size=42, weight="bold")
-        self.fonte_grande = tkfont.Font(family=fonte_base, size=16, weight="bold")
-        self.fonte_media = tkfont.Font(family=fonte_base, size=13)
-        self.fonte_pequena = tkfont.Font(family=fonte_base, size=11)
-        self.fonte_opcao = tkfont.Font(family=fonte_base, size=13, weight="bold")
-        self.fonte_buzzer = tkfont.Font(family=fonte_base, size=22, weight="bold")
-
-        # StringVars
-        self.nome_p1 = tk.StringVar(value="Jogador 1")
-        self.nome_p2 = tk.StringVar(value="Jogador 2")
-        self.porta_serial = tk.StringVar(value="")
-
-        # Model
-        self.model = QuizModel()
-        self._registrar_callbacks()
-
-        self._tela_inicial()
-
-    def _registrar_callbacks(self):
-        self.model.registrar_callback("pergunta_carregada", self._on_pergunta_carregada)
-        self.model.registrar_callback("buzzer_ativado", self._on_buzzer_ativado)
-        self.model.registrar_callback(
-            "resposta_processada", self._on_resposta_processada
+        self.bind(
+            Settings.KEY_WINDOW_MINIMIZE,
+            lambda e: self.attributes("-fullscreen", False),
         )
-        self.model.registrar_callback("jogo_finalizado", self._on_jogo_finalizado)
 
-    def _limpar(self):
+    def __window_config(self) -> None:
+        """Configura a janela."""
+
+        self.title(Settings.TITLE)
+
+        # cross-platform
+        if platform.system() == "Linux":
+            self.attributes("-zoomed", True)
+        elif platform.system() == "Windows":
+            self.state("zoomed")
+        else:
+            messagebox.showwarning("Erro", "Seu sistema não é suportado.")
+
+        self.resizable(True, True)
+        self.configure(bg=Settings.COR_BG)
+        Theme.apply(self)
+
+    def __on_question_loaded(self, **data) -> None:
+        """Docs."""
+
+        raise NotImplementedError("ERROR: __on_question_loaded")
+
+    def __on_buzzer_activated(self, **data) -> None:
+        """Docs."""
+
+        raise NotImplementedError("ERROR: __on_buzzer_activated")
+
+    def __on_answer_processed(self, **data) -> None:
+        """Docs."""
+
+        raise NotImplementedError("ERROR: __on_answer_processed")
+
+    def __on_game_fisished(self, **data) -> None:
+        """Docs."""
+
+        raise NotImplementedError("ERROR: __on_game_fisished")
+
+    def clear(self) -> None:
+        """Docs."""
+
         for w in self.winfo_children():
             w.destroy()
 
-    def _card(self, master, **kw):
-        px = kw.pop("padx", 20)
-        py = kw.pop("pady", 20)
-
-        return tk.Frame(
-            master,
-            bg=Settings.COR_CARD,
-            relief="flat",
-            highlightthickness=1,
-            highlightbackground="#34495e",
-            padx=px,
-            pady=py,
-            **kw,
-        )
-
-    def _label(self, master, texto, cor=Settings.COR_TEXTO, fonte=None, **kw):
-        if fonte is None:
-            fonte = self.fonte_media
-        return tk.Label(master, text=texto, bg=master["bg"], fg=cor, font=fonte, **kw)
-
-    def _botao(self, master, texto, cmd, cor_bg=None, cor_fg=None, fonte=None, **kw):
-        if fonte is None:
-            fonte = self.fonte_opcao
-
-        if cor_bg is None:
-            cor_bg = Settings.COR_BOTAO
-
-        if cor_fg is None:
-            cor_fg = Settings.COR_TEXTO
-
-        return tk.Button(
-            master,
-            text=texto,
-            command=cmd,
-            bg=cor_bg,
-            fg=cor_fg,
-            font=fonte,
-            activebackground=Settings.COR_HOVER,
-            activeforeground=Settings.COR_TITULO,
-            relief="flat",
-            cursor="hand2",
-            padx=10,
-            pady=6,
-            **kw,
-        )
-
-    def _atualizar_portas(self):
-        portas = self.model.serial_manager.listar_portas()
-        self._menu_portas["menu"].delete(0, "end")
-        for p in portas:
-            self._menu_portas["menu"].add_command(
-                label=p, command=lambda v=p: self.porta_serial.set(v)
+    def port_update(self) -> None:
+        """Docs."""
+        assert self._menu_ports, "ERROR: menu_ports not initialized"
+        ports = SerialManager.ports_list()
+        self._menu_ports["menu"].delete(0, "end")
+        for p in ports:
+            self._menu_ports["menu"].add_command(
+                label=p, command=lambda v=p: QuizUI.MenuEntry.serial_port.set(v)
             )
-        if portas:
-            self.porta_serial.set(portas[0])
+        if ports:
+            QuizUI.MenuEntry.serial_port.set(ports[0])
 
-    def _iniciar_jogo(self):
-        porta = self.porta_serial.get()
+    def game_init(self) -> None:
+        """Docs."""
 
-        if porta == "(nenhuma)":
-            porta = None
+        raise NotImplementedError("ERROR: ...")
 
-        self.model.inicializar(self.nome_p1.get(), self.nome_p2.get(), porta)
+    def history_show(self) -> None:
+        """Docs."""
 
-    def _aplicar_tema(self):
-        tema = TEMAS[self.tema_index]
-
-        Settings.COR_CERTO = "#2ecc71"
-        Settings.COR_ERRADO = "#e74c3c"
-
-        Settings.COR_BG = tema["BG"]
-        Settings.COR_CARD = tema["CARD"]
-        Settings.COR_BOTAO = tema["BOTAO"]
-        Settings.COR_HOVER = tema["HOVER"]
-        Settings.COR_TEXTO = tema["TEXTO"]
-        Settings.COR_TITULO = tema["TITULO"]
-        Settings.COR_OURO = tema["OURO"]
-        Settings.COR_BUZZER = tema["BUZZER"]
-        Settings.COR_P1 = tema["P1"]
-        Settings.COR_P2 = tema["P2"]
-
-        self.configure(bg=Settings.COR_BG)
-
-    def _exibir_historico_volatil(self):
-        janela = tk.Toplevel(self)
-        janela.title("Resultados da Sessão")
-        janela.geometry("450x500")
-        janela.configure(bg=Settings.COR_BG)
-
-        self._label(
-            janela,
-            "📊 RESULTADOS ATUAIS",
-            cor=Settings.COR_OURO,
-            fonte=self.fonte_grande,
-        ).pack(pady=20)
-
-        if not self.model.historico_sessao:
-            self._label(
-                janela, "Nenhum jogo finalizado nesta sessão.", cor="#888"
-            ).pack(pady=50)
-            return
-
-        container = tk.Frame(janela, bg=Settings.COR_BG)
-        container.pack(fill="both", expand=True, padx=20)
-
-        # Ordenacao
-        for i, jogo in enumerate(reversed(self.model.historico_sessao)):
-            card = self._card(container)
-            card.pack(fill="x", pady=5, ipady=5)
-
-            texto = (
-                f"JOGO {len(self.model.historico_sessao) - i}\n"
-                f"{jogo['p1']['nome']} [{jogo['p1']['pontos']}] x [{jogo['p2']['pontos']}] {jogo['p2']['nome']}"
-            )
-
-            self._label(card, texto, fonte=self.fonte_pequena).pack()
-            self._label(
-                card,
-                f"Vencedor: {jogo['vencedor']}",
-                cor=Settings.COR_OURO,
-                fonte=self.fonte_pequena,
-            ).pack()
-
-    def _trocar_tema(self):
-        self.tema_index = (self.tema_index + 1) % len(TEMAS)
-        self._aplicar_tema()
-        self._tela_inicial()
-
-        #  Tela Inicial
-
-    def _tela_inicial(self):
-        self._limpar()
-
-        # TOPO
-        topo = tk.Frame(self, bg=Settings.COR_BG)
-        topo.pack(fill="x", pady=30)
-
-        self._label(
-            topo,
-            "🎯 QUIZ DOIS JOGADORES",
-            cor=Settings.COR_OURO,
-            fonte=self.fonte_titulo,
-        ).pack()
-
-        self._label(
-            topo,
-            "10 perguntas · Quem errar passa a vez!",
-            cor=Settings.COR_TEXTO,
-            fonte=self.fonte_pequena,
-        ).pack(pady=10)
-
-        # CONTEÚDO CENTRAL
-        centro = tk.Frame(self, bg=Settings.COR_BG)
-        centro.pack(expand=True)
-
-        # Jogadores
-        row_nomes = tk.Frame(centro, bg=Settings.COR_BG)
-        row_nomes.pack(pady=30)
-
-        for i, (var, cor) in enumerate(
-            [(self.nome_p1, Settings.COR_P1), (self.nome_p2, Settings.COR_P2)]
-        ):
-
-            # Criamos o card usando sua nova função _card
-            card = self._card(row_nomes, padx=40, pady=30)
-            card.grid(row=0, column=i, padx=40)
-
-            emoji = "🔵" if i == 0 else "🔴"
-
-            self._label(
-                card, f"{emoji} Jogador {i + 1}", cor=cor, fonte=self.fonte_grande
-            ).pack()
-
-            # Guardamos o Entry em uma variável para fazer o bind
-            entry = tk.Entry(
-                card,
-                textvariable=var,
-                font=self.fonte_media,
-                bg=Settings.COR_BOTAO,
-                fg=Settings.COR_TITULO,
-                insertbackground=Settings.COR_TITULO,
-                relief="flat",
-                justify="center",
-                width=20,
-            )
-            entry.pack(pady=15, ipady=10)
-
-            entry.bind(
-                "<FocusIn>",
-                lambda e, c=card, cor_foco=cor: c.config(
-                    highlightbackground=cor_foco, highlightthickness=3
-                ),
-            )
-            entry.bind(
-                "<FocusOut>",
-                lambda e, c=card: c.config(
-                    highlightbackground="#34495e", highlightthickness=1
-                ),
-            )
-            # ---------------------------------------
-
-        # Arduino
-        arduino_card = self._card(centro, padx=30, pady=20)
-        arduino_card.pack(pady=20)
-
-        self._label(
-            arduino_card,
-            "⚡ Conexão Arduino",
-            cor=Settings.COR_BUZZER,
-            fonte=self.fonte_grande,
-        ).pack()
-
-        porta_row = tk.Frame(arduino_card, bg=Settings.COR_CARD)
-        porta_row.pack(pady=10)
-
-        portas = self.model.serial_manager.listar_portas()
-        if portas:
-            self.porta_serial.set(portas[0])
-
-        self._label(porta_row, "Porta COM:", cor="#aaa", fonte=self.fonte_pequena).pack(
-            side="left", padx=5
-        )
-
-        opcoes = portas if portas else ["(nenhuma)"]
-
-        self._menu_portas = tk.OptionMenu(porta_row, self.porta_serial, *opcoes)
-        self._menu_portas.config(
-            bg=Settings.COR_BOTAO,
-            fg=Settings.COR_TEXTO,
-            font=self.fonte_pequena,
-            relief="flat",
-            activebackground=Settings.COR_HOVER,
-            highlightthickness=0,
-        )
-        self._menu_portas["menu"].config(bg=Settings.COR_BOTAO, fg=Settings.COR_TEXTO)
-        self._menu_portas.pack(side="left", padx=10)
-
-        self._botao(
-            porta_row,
-            "Atualizar",
-            self._atualizar_portas,
-            cor_bg="#222",
-            fonte=self.fonte_pequena,
-        ).pack(side="left")
-
-        # BOTÃO COMEÇAR
-        self._botao(
-            self,
-            "  COMEÇAR  ",
-            self._iniciar_jogo,
-            cor_bg=Settings.COR_OURO,
-            cor_fg="#1a1a2e",
-            fonte=self.fonte_grande,
-        ).place(relx=0.50, rely=0.90, anchor="center")
-
-        # BOTÃO TEMA
-        self._botao(self, "🎨", self._trocar_tema, fonte=tkfont.Font(size=40)).place(
-            relx=0.98, rely=0.95, anchor="se", width=70, height=70
-        )
-
-        # BOTAO HISTORICO
-        self._botao(
-            self,
-            "📊 PLACAR DA SESSÃO",
-            self._exibir_historico_volatil,
-            cor_bg=Settings.COR_CARD,
-            fonte=self.fonte_pequena,
-        ).place(relx=0.02, rely=0.95, anchor="sw")
-
-    # fim tela inicial
-
-    def _on_pergunta_carregada(self, **dados):
-        """Exibe tela de buzzer com as alternativas como botões"""
-        self._limpar()
-        self.model.aguardando_buzzer = True
-        self.model.respondendo = False
-
-        # 1. Cabeçalho (Topo)
-        hdr = tk.Frame(self, bg=Settings.COR_BG)
-        hdr.pack(fill="x", padx=20, pady=(18, 6))
-        self._label(
-            hdr,
-            f"Pergunta {dados['numero']} de {dados['total']}",
-            cor="#aaa",
-            fonte=self.fonte_pequena,
-        ).pack(side="left")
-        self._label(
-            hdr,
-            f"🔵 {dados['nome_p1']}: {dados['pontos_p1']}   "
-            f"🔴 {dados['nome_p2']}: {dados['pontos_p2']}",
-            cor="#aaa",
-            fonte=self.fonte_pequena,
-        ).pack(side="right")
-
-        # 2. BARRA DE PROGRESSO
-
-        progresso_container = tk.Frame(self, bg=Settings.COR_CARD, height=12)
-
-        progresso_container.pack(side="bottom", fill="x", padx=60, pady=(0, 40))
-
-        largura_proporcional = dados["numero"] / dados["total"]
-        progresso_fill = tk.Frame(progresso_container, bg=Settings.COR_OURO, height=12)
-        progresso_fill.place(relwidth=largura_proporcional, relx=0)
-
-        tk.Frame(self, bg=Settings.COR_BUZZER, height=3).pack(fill="x", padx=20)
-
-        c = self._card(self, padx=24, pady=18)
-        c.pack(fill="x", padx=20, pady=12)
-        self._label(
-            c,
-            dados["pergunta"],
-            cor=Settings.COR_TITULO,
-            fonte=self.fonte_grande,
-            wraplength=700,
-            justify="center",
-        ).pack()
-
-        self.botoes_opcao = []
-        for i, texto in enumerate(dados["opcoes"]):
-            letras = ["A", "B", "C", "D"]
-            btn = self._botao(
-                self,
-                f"  {letras[i]})  {texto}  ",
-                lambda idx=i: None,
-                cor_bg=Settings.COR_BOTAO,
-                anchor="w",
-            )
-            btn.config(state="disabled")
-            btn.pack(fill="x", padx=20, pady=4, ipady=8)
-            self.botoes_opcao.append(btn)
-
-        wait = tk.Frame(self, bg=Settings.COR_BG)
-        wait.pack(pady=16)
-        self._label(
-            wait, "⚡  QUEM SABE?", cor=Settings.COR_BUZZER, fonte=self.fonte_buzzer
-        ).pack()
-        self._label(
-            wait,
-            "Aperte o botão no Arduino para responder!",
-            cor="#aaa",
-            fonte=self.fonte_pequena,
-        ).pack(pady=(4, 0))
-
-    def _on_buzzer_ativado(self, **dados):
-        """Exibe tela de resposta e ativa os botões"""
-        self._limpar()
-        self.model.respondendo = True
-
-        q = self.model.perguntas[self.model.q_index]
-        cor = Settings.COR_P1 if dados["jogador"] == 0 else Settings.COR_P2
-        emoji = "🔵" if dados["jogador"] == 0 else "🔴"
-
-        anuncio = tk.Frame(self, bg=Settings.COR_BG)
-        anuncio.pack(fill="x", pady=(16, 4))
-        self._label(
-            anuncio,
-            f"{emoji}  {dados['nome']} respondeu primeiro!",
-            cor=cor,
-            fonte=self.fonte_grande,
-        ).pack()
-        self._label(
-            anuncio, "Escolha a resposta correta:", cor="#aaa", fonte=self.fonte_pequena
-        ).pack(pady=(2, 0))
-
-        tk.Frame(self, bg=cor, height=3).pack(fill="x", padx=20)
-
-        c = self._card(self, padx=24, pady=14)
-        c.pack(fill="x", padx=20, pady=8)
-        self._label(
-            c,
-            q["pergunta"],
-            cor=Settings.COR_TITULO,
-            fonte=self.fonte_grande,
-            wraplength=680,
-            justify="center",
-        ).pack()
-
-        self.botoes_opcao = []
-        for i, texto in enumerate(q["opcoes"]):
-            letras = ["A", "B", "C", "D"]
-            btn = self._botao(
-                self,
-                f"  {letras[i]})  {texto}  ",
-                lambda idx=i: self.model.responder(idx),
-                cor_bg=Settings.COR_BOTAO,
-                anchor="w",
-            )
-            btn.pack(fill="x", padx=20, pady=4, ipady=8)
-            self.botoes_opcao.append(btn)
-
-    def _on_resposta_processada(self, **dados):
-        """Processa resultado da resposta"""
-        for btn in self.botoes_opcao:
-            btn.config(state="disabled")
-
-        if not dados["acertou"]:
-            self.botoes_opcao[dados["resposta_escolhida"]].config(
-                bg=Settings.COR_ERRADO, fg="#1a1a2e"
-            )
-
-        cor_msg = Settings.COR_CERTO if dados["acertou"] else Settings.COR_ERRADO
-        tk.Label(
-            self,
-            text=dados["msg"],
-            bg=Settings.COR_BG,
-            fg=cor_msg,
-            font=self.fonte_grande,
-            wraplength=680,
-            justify="center",
-        ).pack(pady=10)
-
-        if dados["acao"] == "segunda_chance":
-            self.model.vez_atual = dados["proximo_jogador"]
-            self.after(2200, self._exibir_segunda_chance)
-        else:
-            self.after(1800 if dados["acertou"] else 2000, self.model.proxima_pergunta)
-
-    def _exibir_segunda_chance(self):
-        """Exibe tela de segunda chance"""
-        self._limpar()
-        self.model.respondendo = True
-
-        # --- BARRA---
-        progresso_container = tk.Frame(self, bg=Settings.COR_CARD, height=10)
-        progresso_container.place(relx=0.5, rely=0.9, anchor="center", relwidth=0.8)
-
-        total = 10
-        largura = (self.model.q_index + 1) / total
-
-        tk.Frame(progresso_container, bg=Settings.COR_OURO, height=10).place(
-            relwidth=largura, relx=0
-        )
-
-        q = self.model.perguntas[self.model.q_index]
-        cor = Settings.COR_P1 if self.model.vez_atual == 0 else Settings.COR_P2
-        emoji = "🔵" if self.model.vez_atual == 0 else "🔴"
-        nome = self.model.nome_p1 if self.model.vez_atual == 0 else self.model.nome_p2
-
-        anuncio = tk.Frame(self, bg=Settings.COR_BG)
-        anuncio.pack(fill="x", pady=(16, 4))
-        self._label(
-            anuncio,
-            f"{emoji}  {nome} — segunda chance!",
-            cor=cor,
-            fonte=self.fonte_grande,
-        ).pack()
-        self._label(
-            anuncio,
-            "O adversário errou. Você sabe a resposta?",
-            cor=Settings.COR_BUZZER,
-            fonte=self.fonte_pequena,
-        ).pack(pady=(2, 0))
-
-        tk.Frame(self, bg=cor, height=3).pack(fill="x", padx=20)
-
-        c = self._card(self, padx=24, pady=14)
-        c.pack(fill="x", padx=20, pady=8)
-        self._label(
-            c,
-            q["pergunta"],
-            cor=Settings.COR_TITULO,
-            fonte=self.fonte_grande,
-            wraplength=680,
-            justify="center",
-        ).pack()
-
-        self.botoes_opcao = []
-        for i, texto in enumerate(q["opcoes"]):
-            letras = ["A", "B", "C", "D"]
-            btn = self._botao(
-                self,
-                f"  {letras[i]})  {texto}  ",
-                lambda idx=i: self.model.responder(idx),
-                cor_bg=Settings.COR_BOTAO,
-                anchor="w",
-            )
-            btn.pack(fill="x", padx=20, pady=4, ipady=8)
-            self.botoes_opcao.append(btn)
-
-    def _on_jogo_finalizado(self, **dados):
-        """Exibe tela de resultado"""
-        self._limpar()
-
-        p1, p2 = dados["pontos_p1"], dados["pontos_p2"]
-
-        if p1 > p2:
-            vencedor, cor_v = dados["nome_p1"], Settings.COR_P1
-        elif p2 > p1:
-            vencedor, cor_v = dados["nome_p2"], Settings.COR_P2
-        else:
-            vencedor, cor_v = "Empate!", Settings.COR_OURO
-
-        tk.Frame(self, bg=Settings.COR_BG).pack(expand=True)
-        self._label(
-            self, "🏆  RESULTADO FINAL", cor=Settings.COR_OURO, fonte=self.fonte_titulo
-        ).pack()
-
-        c = self._card(self, padx=40, pady=24)
-        c.pack(padx=60, pady=20)
-        row = tk.Frame(c, bg=Settings.COR_CARD)
-        row.pack()
-        for nome, pts, cor, em in [
-            (dados["nome_p1"], p1, Settings.COR_P1, "🔵"),
-            (dados["nome_p2"], p2, Settings.COR_P2, "🔴"),
-        ]:
-            col = tk.Frame(row, bg=Settings.COR_CARD, padx=30)
-            col.pack(side="left")
-            self._label(col, f"{em} {nome}", cor=cor, fonte=self.fonte_grande).pack()
-            self._label(
-                col,
-                f"{pts}",
-                cor=Settings.COR_TITULO,
-                fonte=tkfont.Font(family="Arial", size=48, weight="bold"),
-            ).pack()
-            self._label(col, "pontos", cor="#888", fonte=self.fonte_pequena).pack()
-
-        self._label(self, vencedor, cor=cor_v, fonte=self.fonte_titulo).pack(
-            pady=(0, 4)
-        )
-
-        btns = tk.Frame(self, bg=Settings.COR_BG)
-        btns.pack(pady=16)
-        self._botao(
-            btns,
-            "  JOGAR NOVAMENTE  ",
-            self.model.reiniciar,
-            cor_bg=Settings.COR_OURO,
-            cor_fg="#1a1a2e",
-            fonte=self.fonte_grande,
-        ).pack(side="left", padx=8, ipadx=8, ipady=4)
-        self._botao(
-            btns, "  MENU INICIAL  ", self._voltar_menu, cor_bg=Settings.COR_BOTAO
-        ).pack(side="left", padx=8, ipadx=8, ipady=4)
-        tk.Frame(self, bg=Settings.COR_BG).pack(expand=True)
-
-    def _voltar_menu(self):
-        self.model.encerrar()
-        self._tela_inicial()
-
-    def destroy(self):
-        self.model.encerrar()
-        super().destroy()
+        raise NotImplementedError("ERROR: ...")

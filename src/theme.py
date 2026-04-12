@@ -1,5 +1,8 @@
 """Docs."""
 
+from settings import Settings
+from tkinter import Tk
+
 TEMAS = [
     {
         "nome": "Jogo",
@@ -119,3 +122,36 @@ TEMAS = [
         "P2": "#ffff00",  # Amarelo
     },
 ]
+
+
+class Theme:
+    current_index: int = 0
+
+    @staticmethod
+    def chance() -> None:
+        """Docs."""
+
+        raise NotImplementedError("ERROR: ...")
+
+    @staticmethod
+    def apply(root: Tk) -> None:
+        """Applica to tema
+        Args:
+            root (Tk): Uma instancia de QuizUI, e.g. Theme.apply(self)
+        """
+        tema = TEMAS[Theme.current_index]
+        Settings.COR_CERTO = "#2ecc71"
+        Settings.COR_ERRADO = "#e74c3c"
+
+        Settings.COR_BG = tema["BG"]
+        Settings.COR_CARD = tema["CARD"]
+        Settings.COR_BOTAO = tema["BOTAO"]
+        Settings.COR_HOVER = tema["HOVER"]
+        Settings.COR_TEXTO = tema["TEXTO"]
+        Settings.COR_TITULO = tema["TITULO"]
+        Settings.COR_OURO = tema["OURO"]
+        Settings.COR_BUZZER = tema["BUZZER"]
+        Settings.COR_P1 = tema["P1"]
+        Settings.COR_P2 = tema["P2"]
+
+        root.configure(bg=Settings.COR_BG)
