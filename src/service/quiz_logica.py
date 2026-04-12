@@ -1,3 +1,4 @@
+"""Docs."""
 
 import random
 import threading
@@ -7,36 +8,61 @@ import serial.tools.list_ports
 BAUD_RATE = 9600
 
 PERGUNTAS = [
-    {"pergunta": "Qual é a capital do Brasil?",
-     "opcoes": ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
-     "resposta": 1},
-    {"pergunta": "Quantos estados tem o Brasil?",
-     "opcoes": ["24", "25", "26", "27"],
-     "resposta": 2},
-    {"pergunta": "Quem escreveu 'Dom Casmurro'?",
-     "opcoes": ["José de Alencar", "Machado de Assis", "Guimarães Rosa", "Clarice Lispector"],
-     "resposta": 1},
-    {"pergunta": "Qual é o maior planeta do Sistema Solar?",
-     "opcoes": ["Saturno", "Netuno", "Júpiter", "Urano"],
-     "resposta": 2},
-    {"pergunta": "Em que ano o Brasil foi descoberto?",
-     "opcoes": ["1492", "1498", "1500", "1502"],
-     "resposta": 2},
-    {"pergunta": "Qual é o elemento químico representado por 'O'?",
-     "opcoes": ["Ouro", "Osmio", "Oxigênio", "Ósmio"],
-     "resposta": 2},
-    {"pergunta": "Quantos jogadores tem um time de futebol em campo?",
-     "opcoes": ["9", "10", "11", "12"],
-     "resposta": 2},
-    {"pergunta": "Qual é a montanha mais alta do mundo?",
-     "opcoes": ["K2", "Monte Everest", "Aconcágua", "Mont Blanc"],
-     "resposta": 1},
-    {"pergunta": "Qual país tem a maior população do mundo?",
-     "opcoes": ["Índia", "EUA", "China", "Rússia"],
-     "resposta": 0},
-    {"pergunta": "Quantos lados tem um hexágono?",
-     "opcoes": ["5", "6", "7", "8"],
-     "resposta": 1},
+    {
+        "pergunta": "Qual é a capital do Brasil?",
+        "opcoes": ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+        "resposta": 1,
+    },
+    {
+        "pergunta": "Quantos estados tem o Brasil?",
+        "opcoes": ["24", "25", "26", "27"],
+        "resposta": 2,
+    },
+    {
+        "pergunta": "Quem escreveu 'Dom Casmurro'?",
+        "opcoes": [
+            "José de Alencar",
+            "Machado de Assis",
+            "Guimarães Rosa",
+            "Clarice Lispector",
+        ],
+        "resposta": 1,
+    },
+    {
+        "pergunta": "Qual é o maior planeta do Sistema Solar?",
+        "opcoes": ["Saturno", "Netuno", "Júpiter", "Urano"],
+        "resposta": 2,
+    },
+    {
+        "pergunta": "Em que ano o Brasil foi descoberto?",
+        "opcoes": ["1492", "1498", "1500", "1502"],
+        "resposta": 2,
+    },
+    {
+        "pergunta": "Qual é o elemento químico representado por 'O'?",
+        "opcoes": ["Ouro", "Osmio", "Oxigênio", "Ósmio"],
+        "resposta": 2,
+    },
+    {
+        "pergunta": "Quantos jogadores tem um time de futebol em campo?",
+        "opcoes": ["9", "10", "11", "12"],
+        "resposta": 2,
+    },
+    {
+        "pergunta": "Qual é a montanha mais alta do mundo?",
+        "opcoes": ["K2", "Monte Everest", "Aconcágua", "Mont Blanc"],
+        "resposta": 1,
+    },
+    {
+        "pergunta": "Qual país tem a maior população do mundo?",
+        "opcoes": ["Índia", "EUA", "China", "Rússia"],
+        "resposta": 0,
+    },
+    {
+        "pergunta": "Quantos lados tem um hexágono?",
+        "opcoes": ["5", "6", "7", "8"],
+        "resposta": 1,
+    },
 ]
 
 TOTAL_PERGUNTAS = 10
@@ -110,23 +136,26 @@ class QuizModel:
         self.serial_manager = SerialManager(callback_buzzer=self._on_buzzer)
 
         self.callbacks = {
-            'pergunta_carregada': None,
-            'buzzer_ativado': None,
-            'resposta_processada': None,
-            'proximo': None,
-            'jogo_finalizado': None,
+            "pergunta_carregada": None,
+            "buzzer_ativado": None,
+            "resposta_processada": None,
+            "proximo": None,
+            "jogo_finalizado": None,
         }
 
     def acionar_buzzer_teclado(self, jogador):
         self._on_buzzer(jogador)
 
-    
     def registrar_fim_de_jogo(self):
         """Armazena o resultado na lista de histórico da sessão"""
         resultado = {
             "p1": {"nome": self.nome_p1, "pontos": self.pontos[0]},
             "p2": {"nome": self.nome_p2, "pontos": self.pontos[1]},
-            "vencedor": self.nome_p1 if self.pontos[0] > self.pontos[1] else (self.nome_p2 if self.pontos[1] > self.pontos[0] else "Empate")
+            "vencedor": (
+                self.nome_p1
+                if self.pontos[0] > self.pontos[1]
+                else (self.nome_p2 if self.pontos[1] > self.pontos[0] else "Empate")
+            ),
         }
         self.historico_sessao.append(resultado)
 
@@ -156,15 +185,17 @@ class QuizModel:
         self.respondendo = False
 
         q = self.perguntas[self.q_index]
-        self._emitir('pergunta_carregada',
-                     pergunta=q['pergunta'],
-                     opcoes=q['opcoes'],  # <-- agora as alternativas são enviadas
-                     numero=self.q_index + 1,
-                     total=TOTAL_PERGUNTAS,
-                     nome_p1=self.nome_p1,
-                     nome_p2=self.nome_p2,
-                     pontos_p1=self.pontos[0],
-                     pontos_p2=self.pontos[1])
+        self._emitir(
+            "pergunta_carregada",
+            pergunta=q["pergunta"],
+            opcoes=q["opcoes"],  # <-- agora as alternativas são enviadas
+            numero=self.q_index + 1,
+            total=TOTAL_PERGUNTAS,
+            nome_p1=self.nome_p1,
+            nome_p2=self.nome_p2,
+            pontos_p1=self.pontos[0],
+            pontos_p2=self.pontos[1],
+        )
 
         self.serial_manager.enviar("READY")
 
@@ -176,9 +207,11 @@ class QuizModel:
         self.aguardando_buzzer = False
         self.vez_atual = jogador
 
-        self._emitir('buzzer_ativado',
-                     jogador=jogador,
-                     nome=self.nome_p1 if jogador == 0 else self.nome_p2)
+        self._emitir(
+            "buzzer_ativado",
+            jogador=jogador,
+            nome=self.nome_p1 if jogador == 0 else self.nome_p2,
+        )
 
     # ── Resposta ──────────────────────────────────────────────
     def responder(self, idx_escolha):
@@ -188,50 +221,54 @@ class QuizModel:
         self.respondendo = False
 
         q = self.perguntas[self.q_index]
-        correta = q['resposta']
-        acertou = (idx_escolha == correta)
+        correta = q["resposta"]
+        acertou = idx_escolha == correta
 
         resultado = {
-            'acertou': acertou,
-            'resposta_correta': correta,
-            'resposta_escolhida': idx_escolha,
-            'jogador': self.vez_atual,
-            'nome': self.nome_p1 if self.vez_atual == 0 else self.nome_p2,
-            'nome_adversario': self.nome_p2 if self.vez_atual == 0 else self.nome_p1,
+            "acertou": acertou,
+            "resposta_correta": correta,
+            "resposta_escolhida": idx_escolha,
+            "jogador": self.vez_atual,
+            "nome": self.nome_p1 if self.vez_atual == 0 else self.nome_p2,
+            "nome_adversario": self.nome_p2 if self.vez_atual == 0 else self.nome_p1,
         }
 
         if acertou:
             self.pontos[self.vez_atual] += 1
-            resultado['acao'] = 'proximo'
-            resultado['msg'] = f"✅  {resultado['nome']} acertou! +1 ponto!"
+            resultado["acao"] = "proximo"
+            resultado["msg"] = f"✅  {resultado['nome']} acertou! +1 ponto!"
             self.serial_manager.enviar("RESET")
 
         elif self.primeira_tentativa:
             self.primeira_tentativa = False
             adversario = 1 - self.vez_atual
-            resultado['acao'] = 'segunda_chance'
-            resultado['proximo_jogador'] = adversario
-            resultado['msg'] = (f"❌  {resultado['nome']} errou!\n"
-                                f"💡  {resultado['nome_adversario']} tem a chance!")
+            resultado["acao"] = "segunda_chance"
+            resultado["proximo_jogador"] = adversario
+            resultado["msg"] = (
+                f"❌  {resultado['nome']} errou!\n"
+                f"💡  {resultado['nome_adversario']} tem a chance!"
+            )
             self.serial_manager.enviar("RESET")
 
         else:
-            resultado['acao'] = 'proximo'
-            resultado['msg'] = "❌  Ninguém acertou! Próxima pergunta..."
+            resultado["acao"] = "proximo"
+            resultado["msg"] = "❌  Ninguém acertou! Próxima pergunta..."
             self.serial_manager.enviar("RESET")
 
-        self._emitir('resposta_processada', **resultado)
+        self._emitir("resposta_processada", **resultado)
 
     def proxima_pergunta(self):
         self.q_index += 1
 
         if self.q_index >= TOTAL_PERGUNTAS:
             self.registrar_fim_de_jogo()
-            self._emitir('jogo_finalizado',
-                         nome_p1=self.nome_p1,
-                         nome_p2=self.nome_p2,
-                         pontos_p1=self.pontos[0],
-                         pontos_p2=self.pontos[1])
+            self._emitir(
+                "jogo_finalizado",
+                nome_p1=self.nome_p1,
+                nome_p2=self.nome_p2,
+                pontos_p1=self.pontos[0],
+                pontos_p2=self.pontos[1],
+            )
         else:
             self._carregar_pergunta()
 
@@ -243,4 +280,3 @@ class QuizModel:
 
     def encerrar(self):
         self.serial_manager.desconectar()
-
