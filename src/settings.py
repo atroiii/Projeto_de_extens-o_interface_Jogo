@@ -6,6 +6,9 @@ ReliefType: TypeAlias = Literal["raised", "sunken", "flat", "ridge", "solid", "g
 
 
 class Settings:
+    EMULATE_ARDUINO: bool = True
+    BAUD_RATE: int = 9600
+
     TITLE: str = "Quiz "
 
     KEY_BUZZER_ACTIVATE_0: str = "<F1>"
@@ -15,7 +18,7 @@ class Settings:
     KEY_WINDOW_MINIMIZE: str = "<Escape>"
 
     FONT_TITLE: str = "Impact"
-    FONT_BASE: str = "JetBrains Mono" #"Comic Sans Ms"
+    FONT_BASE: str = "JetBrains Mono"  # "Comic Sans Ms"
     FONT_TITLE_SIZE: int = 42
     FONT_BIG_SIZE: int = 16
     FONT_MEDIAN_SIZE: int = 13
@@ -54,4 +57,17 @@ class Settings:
         PLAYER_1_ICON: str = "🔵"
         PLAYER_2_ICON: str = "🔴"
 
-        ARDUINO_CONNECTION_MSG = "⚡ Conexão Arduino"
+        ARDUINO_CONNECTION_MSG: str = "⚡ Conexão Arduino"
+        BEGIN_BUTTON_MSG: str = " COMEÇAR "
+
+        SCOREBOARD_BUTTON_MSG: str = "📊 PLACAR DA SESSÃO"
+
+    class History:
+        WINDOW_TITLE: str = "Resultados da Sessão"
+        WINDOW_RES: str = "450x500"
+        TITLE: str = "📊 RESULTADOS ATUAIS"
+
+        NOGAMES_MSG: str = "Nenhum jogo finalizado nesta sessão."
+
+    class Emulator:
+        DEVICE_NUMBER: int = 10

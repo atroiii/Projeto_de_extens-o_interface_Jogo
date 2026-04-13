@@ -8,11 +8,11 @@ class QuizFont:
     """Docs."""
 
     title: tkfont.Font
-    big: tkfont.Font 
-    median: tkfont.Font 
-    small: tkfont.Font 
-    choice: tkfont.Font 
-    buzzer: tkfont.Font 
+    big: tkfont.Font
+    median: tkfont.Font
+    small: tkfont.Font
+    choice: tkfont.Font
+    buzzer: tkfont.Font
 
     @staticmethod
     def init() -> None:

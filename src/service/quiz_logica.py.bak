@@ -208,7 +208,7 @@ class QuizModel:
         self.vez_atual = jogador
 
         self._emitir(
-            "buzzer_ativado",
+            "buzzer_ativado"
             jogador=jogador,
             nome=self.nome_p1 if jogador == 0 else self.nome_p2,
         )
