@@ -1,6 +1,28 @@
 # Projeto de Extensão interface de um Jogo
  * versão 1.0.0v
 
+## Menu:
+![alt](<screenshots/Captura de tela de 2026-04-13 13-29-31.png>)
+
+### Histórico:
+![alt](<screenshots/Captura de tela de 2026-04-13 14-44-01.png>)
+
+## Gameplay:
+![alt](<screenshots/Captura de tela de 2026-04-13 14-41-16.png>)
+
+### Questão
+![alt](<screenshots/Captura de tela de 2026-04-13 14-41-22.png>)
+
+### Empate
+![alt](<screenshots/Captura de tela de 2026-04-13 14-41-33.png>)
+
+### Acerto
+![alt](<screenshots/Captura de tela de 2026-04-13 14-42-43.png>)
+
+### End
+![alt](<screenshots/Captura de tela de 2026-04-13 14-43-37.png>)
+
+
 ## Componentes:
  * Theme:
     * themesdata
