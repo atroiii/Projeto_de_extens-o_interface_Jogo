@@ -7,7 +7,7 @@ from themesdata import TEMAS
 
 
 class Theme:
-    current_index: int = 0
+    current_index: int = 1
 
     @staticmethod
     def chance(root) -> None:

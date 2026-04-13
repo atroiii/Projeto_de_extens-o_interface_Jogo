@@ -1,6 +1,19 @@
 # Projeto de Extensão interface de um Jogo
  * versão 1.0.0v
 
+## Componentes:
+ * Theme:
+    * themesdata
+ * Settings
+ * QuizGame
+ * QuizFont
+ * Emulator
+ * Callback
+ * QuizUI
+ * QuizModel
+    * dataset
+
+
 ## Project structure ARD 20260411
 main : entry point
 

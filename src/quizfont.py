@@ -3,6 +3,9 @@
 from settings import Settings
 from tkinter import font as tkfont
 
+import os
+import platform
+
 
 class QuizFont:
     """Docs."""

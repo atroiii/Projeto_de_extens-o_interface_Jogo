@@ -10,6 +10,8 @@ import platform
 from service.quizmodel import QuizModel, SerialManager
 from callback import Callback
 from quizfont import QuizFont, tkfont
+from quizres import QuizRes
+import time
 
 
 class QuizUI(tk.Tk):
@@ -84,8 +86,8 @@ class QuizUI(tk.Tk):
 
         @staticmethod
         def init() -> None:
-            QuizUI.MenuEntry.player_1_name = tk.StringVar(value="Jogador 1")
-            QuizUI.MenuEntry.player_2_name = tk.StringVar(value="Jogador 2")
+            QuizUI.MenuEntry.player_1_name = tk.StringVar(value="A")
+            QuizUI.MenuEntry.player_2_name = tk.StringVar(value="B")
             QuizUI.MenuEntry.serial_port = tk.StringVar(value="")
 
     class Screen:
@@ -125,14 +127,15 @@ class QuizUI(tk.Tk):
                 card = QuizUI.Create.Card(row_names, padx=40, pady=30)
                 card.grid(row=0, column=i, padx=40)
 
-                emoji = (
-                    Settings.Menu.PLAYER_1_ICON
-                    if i == 0
-                    else Settings.Menu.PLAYER_2_ICON
-                )
+                icon = QuizRes.player_1_icon if i == 0 else QuizRes.player_2_icon
 
                 QuizUI.Create.Label(
-                    card, f"{emoji} Jogador {i + 1}", color=color, font=QuizFont.big
+                    card,
+                    f"Jogador {i + 1}",
+                    color=color,
+                    font=QuizFont.big,
+                    image=icon,
+                    compound="left",
                 ).pack()
 
                 entry: tk.Entry = tk.Entry(
@@ -165,6 +168,8 @@ class QuizUI(tk.Tk):
                 Settings.Menu.ARDUINO_CONNECTION_MSG,
                 color=Settings.COR_BUZZER,
                 font=QuizFont.big,
+                image=QuizRes.ports_icon,
+                compound="left",
             ).pack()
 
             port_row = tk.Frame(arduino_card, bg=Settings.COR_CARD)
@@ -196,10 +201,13 @@ class QuizUI(tk.Tk):
 
             QuizUI.Create.Button(
                 port_row,
-                "Atualizar",
+                "",
                 root.port_update,
-                bg_color="#222",
+                bg_color=Settings.COR_CARD,
                 font=QuizFont.small,
+                image=QuizRes.reload_ports_icon,
+                borderwidth=0,
+                highlightthickness=0,
             ).pack(side="left")
 
             QuizUI.Create.Button(
@@ -212,7 +220,11 @@ class QuizUI(tk.Tk):
             ).place(relx=0.50, rely=0.90, anchor="center")
 
             QuizUI.Create.Button(
-                root, "🎨", lambda: Theme.chance(root), font=tkfont.Font(size=40)
+                root,
+                "",
+                lambda: Theme.chance(root),
+                font=tkfont.Font(size=40),
+                image=QuizRes.theme_chance_icon,
             ).place(relx=0.98, rely=0.95, anchor="se", width=70, height=70)
 
             QuizUI.Create.Button(
@@ -221,6 +233,8 @@ class QuizUI(tk.Tk):
                 root.history_show,
                 bg_color=Settings.COR_CARD,
                 font=QuizFont.small,
+                image=QuizRes.history_icon,
+                compound="left",
             ).place(relx=0.02, rely=0.95, anchor="sw")
 
         @staticmethod
@@ -242,7 +256,12 @@ class QuizUI(tk.Tk):
 
             q = QuizModel.questions[QuizModel.q_index]
             cor = Settings.COR_P1 if QuizModel.current_player == 0 else Settings.COR_P2
-            emoji = "🔵" if QuizModel.current_player == 0 else "🔴"
+            icon = (
+                QuizRes.player_1_icon
+                if QuizModel.current_player == 0
+                else QuizRes.player_2_icon
+            )
+
             nome = (
                 QuizModel.player_1_name
                 if QuizModel.current_player == 0
@@ -253,9 +272,11 @@ class QuizUI(tk.Tk):
             anuncio.pack(fill="x", pady=(16, 4))
             QuizUI.Create.Label(
                 anuncio,
-                f"{emoji}  {nome} — segunda chance!",
+                f"{nome} - segunda chance!",
                 color=cor,
                 font=QuizFont.big,
+                image=icon,
+                compound="left",
             ).pack()
             QuizUI.Create.Label(
                 anuncio,
@@ -297,8 +318,14 @@ class QuizUI(tk.Tk):
         QuizFont.init()
         QuizUI.MenuEntry.init()
         self.__regiter_callbacks()
+        QuizRes.init()
         self.menu_ports: tk.OptionMenu | None = None
         QuizUI.Screen.menu(self)
+
+        if Settings.EMULATE_ARDUINO:
+            messagebox.showwarning(
+                "MODO DE EMULAÇÃO", "Modo de simulação de arduino ativado."
+            )
 
     def __regiter_callbacks(self) -> None:
         """Docs."""
@@ -354,6 +381,7 @@ class QuizUI(tk.Tk):
     def __on_question_loaded(self, **data) -> None:
         """Exibe tela de buzzer com as alternativas como botões"""
         self.clear()
+        self.config(cursor="none")
         QuizModel.is_waiting_buzzer = True
         QuizModel.is_answering = False
 
@@ -365,10 +393,11 @@ class QuizUI(tk.Tk):
             color="#aaa",
             font=QuizFont.small,
         ).pack(side="left")
+
         QuizUI.Create.Label(
             hdr,
-            f"🔵 {data['nome_p1']}: {data['pontos_p1']}   "
-            f"🔴 {data['nome_p2']}: {data['pontos_p2']}",
+            f"{data['nome_p1']}: {data['pontos_p1']}   "
+            f"{data['nome_p2']}: {data['pontos_p2']}",
             color="#aaa",
             font=QuizFont.small,
         ).pack(side="right")
@@ -411,7 +440,12 @@ class QuizUI(tk.Tk):
         wait = tk.Frame(self, bg=Settings.COR_BG)
         wait.pack(pady=16)
         QuizUI.Create.Label(
-            wait, "⚡  QUEM SABE?", color=Settings.COR_BUZZER, font=QuizFont.buzzer
+            wait,
+            "QUEM SABE?",
+            color=Settings.COR_BUZZER,
+            font=QuizFont.buzzer,
+            image=QuizRes.question_icon,
+            compound="left",
         ).pack()
         QuizUI.Create.Label(
             wait,
@@ -420,6 +454,11 @@ class QuizUI(tk.Tk):
             font=QuizFont.small,
         ).pack(pady=(4, 0))
 
+        self.update()
+        if Settings.EMULATE_ARDUINO:
+            time.sleep(2)
+        self.config(cursor="")
+
     def __on_buzzer_activated(self, **data) -> None:
         """Exibe tela de resposta e ativa os botões"""
         self.clear()
@@ -427,15 +466,17 @@ class QuizUI(tk.Tk):
 
         q = QuizModel.questions[QuizModel.q_index]
         cor = Settings.COR_P1 if data["player"] == 0 else Settings.COR_P2
-        emoji = "🔵" if data["player"] == 0 else "🔴"
+        icon = QuizRes.player_1_icon if data["player"] == 0 else QuizRes.player_2_icon
 
         anuncio = tk.Frame(self, bg=Settings.COR_BG)
         anuncio.pack(fill="x", pady=(16, 4))
         QuizUI.Create.Label(
             anuncio,
-            f"{emoji}  {data['name']} respondeu primeiro!",
+            f"  {data['name']} respondeu primeiro!",
             color=cor,
             font=QuizFont.big,
+            image=icon,
+            compound="left",
         ).pack()
         QuizUI.Create.Label(
             anuncio, "Escolha a resposta correta:", color="#aaa", font=QuizFont.small
@@ -486,6 +527,8 @@ class QuizUI(tk.Tk):
             font=QuizFont.big,
             wraplength=680,
             justify="center",
+            image=data["icon"],
+            compound="left",
         ).pack(pady=10)
 
         if data["acao"] == "segunda_chance":
@@ -509,7 +552,12 @@ class QuizUI(tk.Tk):
 
         tk.Frame(self, bg=Settings.COR_BG).pack(expand=True)
         QuizUI.Create.Label(
-            self, "🏆  RESULTADO FINAL", color=Settings.COR_OURO, font=QuizFont.title
+            self,
+            " RESULTADO FINAL",
+            color=Settings.COR_OURO,
+            font=QuizFont.title,
+            image=QuizRes.winner_icon,
+            compound="left",
         ).pack()
 
         c = QuizUI.Create.Card(self, padx=40, pady=24)
@@ -517,13 +565,13 @@ class QuizUI(tk.Tk):
         row = tk.Frame(c, bg=Settings.COR_CARD)
         row.pack()
         for nome, pts, cor, em in [
-            (data["nome_p1"], p1, Settings.COR_P1, "🔵"),
-            (data["nome_p2"], p2, Settings.COR_P2, "🔴"),
+            (data["nome_p1"], p1, Settings.COR_P1, QuizRes.player_1_icon),
+            (data["nome_p2"], p2, Settings.COR_P2, QuizRes.player_2_icon),
         ]:
             col = tk.Frame(row, bg=Settings.COR_CARD, padx=30)
             col.pack(side="left")
             QuizUI.Create.Label(
-                col, f"{em} {nome}", color=cor, font=QuizFont.big
+                col, f"{nome}", color=cor, font=QuizFont.big, image=em, compound="left"
             ).pack()
             QuizUI.Create.Label(
                 col,
@@ -604,6 +652,8 @@ class QuizUI(tk.Tk):
             Settings.History.TITLE,
             color=Settings.COR_OURO,
             font=QuizFont.big,
+            image=QuizRes.history_icon,
+            compound="left",
         ).pack(pady=20)
 
         if len(QuizModel.session_history) <= 0:

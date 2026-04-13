@@ -5,6 +5,7 @@ from typing import Any
 from dataclasses import dataclass
 from random import randint, choice
 import threading
+import time
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,8 +33,17 @@ class EmuSerial:
     timeout: float = 1
     write_timeout: int = 2
 
-    is_open: bool = True
-    in_waiting: bool = True
+    @property
+    def is_open(self) -> bool:
+        if Settings.Emu.EMULATE_DELAY:
+            time.sleep(Settings.Emu.DELAY_IS_OPEN)
+        return True
+
+    @property
+    def in_waiting(self) -> bool:
+        if Settings.Emu.EMULATE_DELAY:
+            time.sleep(Settings.Emu.DELAY_IN_WAITING)
+        return True
 
     def readline(self) -> bytes:
         return choice(("1", "2")).encode("utf-8")
@@ -84,15 +94,14 @@ class Emulator:
 
     @staticmethod
     def read(model) -> Any:
-        print("in")
-        while model.running and model.serial_conn is not None:
-            if not model.serial_conn.in_waiting:
+        while model.running and (serial_conn := model.serial_conn) is not None:
+            if not serial_conn.in_waiting:
                 continue
-            linha = model.serial_conn.readline().decode("utf-8").strip()
+            linha = serial_conn.readline().decode("utf-8").strip()
             if linha in ("1", "2") and model.callback_buzzer is not None:
                 jogador = int(linha) - 1
                 model.callback_buzzer(jogador)
-        print("out")
+            time.sleep(Settings.THREAD_DELAY)
 
     @staticmethod
     def send(model, cmd) -> Any:

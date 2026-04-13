@@ -19,6 +19,8 @@ from emulator import Emulator, gen_random_port_list
 from service.dataset import PERGUNTAS, TOTAL_PERGUNTAS
 from callback import Callback
 
+from quizres import QuizRes
+
 
 class SerialManager:
     serial_conn = None
@@ -90,6 +92,7 @@ class SerialManager:
                         SerialManager.callback_buzzer(jogador)
             except Exception:
                 break
+            time.sleep(Settings.THREAD_DELAY)
 
     @staticmethod
     def send(cmd: Any) -> Any:
@@ -248,26 +251,30 @@ class QuizModel:
                 if QuizModel.current_player == 0
                 else QuizModel.player_1_name
             ),
+            "icon": None,
         }
 
         if acertou:
             QuizModel.points[QuizModel.current_player] += 1
             resultado["acao"] = "proximo"
-            resultado["msg"] = f"✅  {resultado['nome']} acertou! +1 ponto!"
+            resultado["icon"] = QuizRes.correct_ans_icon
+            resultado["msg"] = f"{resultado['nome']} acertou! +1 ponto!"
 
         elif QuizModel.first_try:
             QuizModel.first_try = False
             adversario = 1 - QuizModel.current_player
+            resultado["icon"] = QuizRes.try_again_ans_icon
             resultado["acao"] = "segunda_chance"
             resultado["proximo_jogador"] = adversario
             resultado["msg"] = (
-                f"❌  {resultado['nome']} errou!\n"
-                f"💡  {resultado['nome_adversario']} tem a chance!"
+                f"{resultado['nome']} errou!\n"
+                f"{resultado['nome_adversario']} tem a chance!"
             )
 
         else:
             resultado["acao"] = "proximo"
-            resultado["msg"] = "❌  Ninguém acertou! Próxima pergunta..."
+            resultado["icon"] = QuizRes.fail_ans
+            resultado["msg"] = " Ninguém acertou! Próxima pergunta..."
 
         SerialManager.send("RESET")
         QuizModel.emit(Callback.ANSWER_PROCESSED, **resultado)
