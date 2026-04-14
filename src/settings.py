@@ -12,8 +12,8 @@ class Settings:
 
     class Emu:
         EMULATE_DELAY: bool = True
-        DELAY_IS_OPEN: int = 0.5
-        DELAY_IN_WAITING: int = 0.5
+        DELAY_IS_OPEN: float = 0.5
+        DELAY_IN_WAITING: float = 0.5
 
     TITLE: str = "Quiz "
 

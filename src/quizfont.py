@@ -3,8 +3,41 @@
 from settings import Settings
 from tkinter import font as tkfont
 
+from pathlib import Path
 import os
 import platform
+import ctypes
+
+from typing import Any, Optional
+
+AddFontResourceExW: Any = None
+
+if platform.system() == "Windows":
+    from ctypes import wintypes
+
+    try:
+        gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
+        AddFontResourceExW = gdi32.AddFontResourceExW
+
+        AddFontResourceExW.argtypes = [
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.LPVOID,
+        ]
+        AddFontResourceExW.restype = wintypes.INT
+
+    except (AttributeError, OSError):
+        AddFontResourceExW = None
+
+
+def font_load(fontpath: Path) -> Optional[int]:
+    assert fontpath.exists(), f"ERROR: File path {fontpath} does not exist."
+
+    if platform.system() == "Windows" and AddFontResourceExW is not None:
+        flags = 0x10
+        return AddFontResourceExW(str(fontpath), flags, 0)
+
+    return None
 
 
 class QuizFont:
@@ -19,6 +52,14 @@ class QuizFont:
 
     @staticmethod
     def init() -> None:
+        if platform.system() == "Windows":
+            font_load(Path("./res/fonts/PressStart2P-Regular.ttf"))
+            fonts = tkfont.families()
+            target_font = [font for font in fonts if "PressStart2P" in font]
+            assert len(target_font) <= 0, "ERROR: Failed to load font."
+            Settings.FONT_TITLE = target_font[0]
+            Settings.FONT_BASE = target_font[0]
+
         QuizFont.title = tkfont.Font(
             family=Settings.FONT_TITLE, size=Settings.FONT_TITLE_SIZE, weight="bold"
         )

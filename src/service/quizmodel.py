@@ -20,6 +20,7 @@ from service.dataset import PERGUNTAS, TOTAL_PERGUNTAS
 from callback import Callback
 
 from quizres import QuizRes
+import time
 
 
 class SerialManager:
