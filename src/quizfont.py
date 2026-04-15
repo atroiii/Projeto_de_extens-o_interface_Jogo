@@ -53,10 +53,10 @@ class QuizFont:
     @staticmethod
     def init() -> None:
         if platform.system() == "Windows":
-            font_load(Path("./res/fonts/PressStart2P-Regular.ttf"))
+            font_load(Path("../res/fonts/PressStart2P-Regular.ttf"))
             fonts = tkfont.families()
-            target_font = [font for font in fonts if "PressStart2P" in font]
-            assert len(target_font) <= 0, "ERROR: Failed to load font."
+            target_font = [font for font in fonts if "Press Start 2P" in font or "PressStart2P" in font]
+            assert len(target_font) > 0, f"ERRO: Fonte nao encontrada no sistema. Disponiveis: {fonts[:5]}"
             Settings.FONT_TITLE = target_font[0]
             Settings.FONT_BASE = target_font[0]
 
