@@ -1,10 +1,7 @@
 """Docs."""
 
-from typing import Any
-
-from typing import Callable, Final
+from typing import Any, Callable, Final
 from callback import Callback
-
 from tkinter import messagebox
 from quizgame import QuizGame, Player
 
@@ -14,12 +11,8 @@ import serial
 import serial.tools.list_ports
 
 from settings import Settings
-from emulator import Emulator, gen_random_port_list
-
-from service.dataset import PERGUNTAS, TOTAL_PERGUNTAS
-from callback import Callback
-
 from quizres import QuizRes
+from service.dataset import PERGUNTAS, TOTAL_PERGUNTAS
 import time
 
 
@@ -35,17 +28,10 @@ class SerialManager:
 
     @staticmethod
     def ports_list() -> list:
-        if Settings.EMULATE_ARDUINO:
-            return Emulator.ports_list(SerialManager)
-
         return [p.device for p in serial.tools.list_ports.comports()]
 
     @staticmethod
-    def connect(port) -> bool:
-        if Settings.EMULATE_ARDUINO:
-            Emulator.connect(SerialManager, port)
-            return True
-
+    def connect(port: str) -> bool:
         try:
             SerialManager.serial_conn = serial.Serial(
                 port, Settings.BAUD_RATE, timeout=0.1
@@ -53,42 +39,28 @@ class SerialManager:
             SerialManager.running = True
             threading.Thread(target=SerialManager.read, daemon=True).start()
             return True
-
         except Exception as e:
             print(f"Erro ao conectar: {e}")
             return False
 
     @staticmethod
-    def disconnect() -> Any:
-        if Settings.EMULATE_ARDUINO:
-            Emulator.disconnect(SerialManager)
-            return
-
+    def disconnect() -> None:
         SerialManager.running = False
         if not SerialManager.serial_conn:
             return
         try:
             SerialManager.serial_conn.close()
-
         except Exception:
-            ...
+            pass
         SerialManager.serial_conn = None
 
     @staticmethod
-    def read() -> Any:
-        if Settings.EMULATE_ARDUINO:
-            Emulator.read(SerialManager)
-            return
-
-        # NOTE: Exceptions needs types
+    def read() -> None:
         while SerialManager.running and SerialManager.serial_conn is not None:
             try:
                 if SerialManager.serial_conn.in_waiting:
                     linha = SerialManager.serial_conn.readline().decode("utf-8").strip()
-                    if (
-                        linha in ("1", "2")
-                        and SerialManager.callback_buzzer is not None
-                    ):
+                    if linha in ("1", "2") and SerialManager.callback_buzzer is not None:
                         jogador = int(linha) - 1
                         SerialManager.callback_buzzer(jogador)
             except Exception:
@@ -96,11 +68,7 @@ class SerialManager:
             time.sleep(Settings.THREAD_DELAY)
 
     @staticmethod
-    def send(cmd: Any) -> Any:
-        if Settings.EMULATE_ARDUINO:
-            Emulator.send(SerialManager, cmd)
-            return
-
+    def send(cmd: Any) -> None:
         if SerialManager.serial_conn and SerialManager.serial_conn.is_open:
             try:
                 SerialManager.serial_conn.write((cmd + "\n").encode())
@@ -108,7 +76,6 @@ class SerialManager:
                 pass
 
 
-# NOTE: Para indexação dos pontos
 PLAYER_1: Final[int] = 0
 PLAYER_2: Final[int] = 1
 
@@ -117,21 +84,15 @@ class QuizModel:
     """Docs."""
 
     callbacks: dict[Callback, Callable | None] = {}
-    session_history: list[QuizGame] = [
-        QuizGame(Player("foo", 100), Player("baz", 200), winner=0)
-    ]
+    session_history: list[QuizGame] = []
 
     player_1_name: str = ""
     player_2_name: str = ""
 
     points: list[int] = [0, 0]
-
     questions: list = []
-
     q_index: int = 0
-
     current_player: int = 0
-
     first_try: bool = True
     is_answering: bool = False
     is_waiting_buzzer: bool = False
@@ -147,7 +108,7 @@ class QuizModel:
             QuizModel.emit(
                 Callback.QUESTION_LOADED,
                 pergunta=q["pergunta"],
-                opcoes=q["opcoes"],  # <-- agora as alternativas são enviadas
+                opcoes=q["opcoes"],
                 numero=QuizModel.q_index + 1,
                 total=TOTAL_PERGUNTAS,
                 nome_p1=QuizModel.player_1_name,
@@ -155,30 +116,27 @@ class QuizModel:
                 pontos_p1=QuizModel.points[PLAYER_1],
                 pontos_p2=QuizModel.points[PLAYER_2],
             )
-
             SerialManager.send("READY")
 
         @staticmethod
         def next() -> None:
             QuizModel.q_index += 1
 
-            if not (QuizModel.q_index >= TOTAL_PERGUNTAS):
-                QuizModel.Question.load()
+            if QuizModel.q_index >= TOTAL_PERGUNTAS:
+                QuizModel.register_end_of_game()
+                QuizModel.emit(
+                    Callback.GAME_FINISHED,
+                    nome_p1=QuizModel.player_1_name,
+                    nome_p2=QuizModel.player_2_name,
+                    pontos_p1=QuizModel.points[PLAYER_1],
+                    pontos_p2=QuizModel.points[PLAYER_2],
+                )
                 return
 
-            QuizModel.register_end_of_game()
-            QuizModel.emit(
-                Callback.GAME_FINISHED,
-                nome_p1=QuizModel.player_1_name,
-                nome_p2=QuizModel.player_2_name,
-                pontos_p1=QuizModel.points[PLAYER_1],
-                pontos_p2=QuizModel.points[PLAYER_2],
-            )
+            QuizModel.Question.load()
 
     @staticmethod
-    def init(player_1_name: str, player_2_name: str, port) -> None:
-        """Docs."""
-
+    def init(player_1_name: str, player_2_name: str, port: str) -> None:
         QuizModel.player_1_name = player_1_name
         QuizModel.player_2_name = player_2_name
         QuizModel.points = [0, 0]
@@ -187,33 +145,30 @@ class QuizModel:
 
         SerialManager.callback_buzzer = QuizModel.on_buzzer
         if port:
-            SerialManager.connect(port)
+            connected = SerialManager.connect(port)
+            if not connected:
+                messagebox.showerror(
+                    "Erro de conexão",
+                    f"Não foi possível conectar na porta {port}.\nVerifique o Arduino e tente novamente."
+                )
+                return
 
         QuizModel.Question.load()
 
     @staticmethod
-    def buzzer_activate(player) -> None:
-        """Docs."""
-
-        messagebox.showwarning("Error", "Não implementado")
-        raise NotImplementedError("ERROR: buzzer_activate")
-
-    @staticmethod
     def register_callback(event: Callback, func: Callable) -> None:
-        """Docs."""
-
-        assert event not in QuizModel.callbacks, "ERROR: Event already registed"
+        assert event not in QuizModel.callbacks, "ERROR: Event already registered"
         QuizModel.callbacks[event] = func
 
     @staticmethod
     def emit(event: Callback, **data) -> None:
-        assert event in QuizModel.callbacks, "ERROR: event not registred."
+        assert event in QuizModel.callbacks, "ERROR: event not registered."
         func: Callable | None = QuizModel.callbacks[event]
         assert func, "ERROR: undefined callback"
         func(**data)
 
     @staticmethod
-    def on_buzzer(player):
+    def on_buzzer(player: int) -> None:
         if not QuizModel.is_waiting_buzzer:
             return
 
@@ -275,14 +230,13 @@ class QuizModel:
         else:
             resultado["acao"] = "proximo"
             resultado["icon"] = QuizRes.fail_ans
-            resultado["msg"] = " Ninguém acertou! Próxima pergunta..."
+            resultado["msg"] = "Ninguém acertou! Próxima pergunta..."
 
         SerialManager.send("RESET")
         QuizModel.emit(Callback.ANSWER_PROCESSED, **resultado)
 
     @staticmethod
     def register_end_of_game() -> None:
-        """Armazena o resultado na lista de histórico da sessão"""
         QuizModel.session_history.append(
             QuizGame(
                 Player(QuizModel.player_1_name, QuizModel.points[PLAYER_1]),
@@ -303,5 +257,5 @@ class QuizModel:
         QuizModel.Question.load()
 
     @staticmethod
-    def finish():
+    def finish() -> None:
         SerialManager.disconnect()

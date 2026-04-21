@@ -1,7 +1,6 @@
 """Docs."""
 
 from typing import Final, Optional, Callable
-from enum import IntEnum, auto
 from settings import Settings
 from theme import Theme
 from tkinter import messagebox
@@ -11,7 +10,6 @@ from service.quizmodel import QuizModel, SerialManager
 from callback import Callback
 from quizfont import QuizFont, tkfont
 from quizres import QuizRes
-import time
 
 
 class QuizUI(tk.Tk):
@@ -243,7 +241,6 @@ class QuizUI(tk.Tk):
             root.clear()
             QuizModel.is_answering = True
 
-            # --- BARRA---
             progresso_container = tk.Frame(root, bg=Settings.COR_CARD, height=10)
             progresso_container.place(relx=0.5, rely=0.9, anchor="center", relwidth=0.8)
 
@@ -322,11 +319,6 @@ class QuizUI(tk.Tk):
         self.menu_ports: tk.OptionMenu | None = None
         QuizUI.Screen.menu(self)
 
-        if Settings.EMULATE_ARDUINO:
-            messagebox.showwarning(
-                "MODO DE EMULAÇÃO", "Modo de simulação de arduino ativado."
-            )
-
     def __regiter_callbacks(self) -> None:
         """Docs."""
 
@@ -343,10 +335,10 @@ class QuizUI(tk.Tk):
         """Configura os atalhos de teclado."""
 
         self.bind(
-            Settings.KEY_BUZZER_ACTIVATE_0, lambda e: QuizModel.buzzer_activate(0)
+            Settings.KEY_BUZZER_ACTIVATE_0, lambda e: QuizModel.on_buzzer(0)
         )
         self.bind(
-            Settings.KEY_BUZZER_ACTIVATE_1, lambda e: QuizModel.buzzer_activate(1)
+            Settings.KEY_BUZZER_ACTIVATE_1, lambda e: QuizModel.on_buzzer(1)
         )
 
         self.bind(
@@ -366,7 +358,6 @@ class QuizUI(tk.Tk):
 
         self.title(Settings.TITLE)
 
-        # cross-platform
         if platform.system() == "Linux":
             self.attributes("-zoomed", True)
         elif platform.system() == "Windows":
@@ -403,7 +394,6 @@ class QuizUI(tk.Tk):
         ).pack(side="right")
 
         progresso_container = tk.Frame(self, bg=Settings.COR_CARD, height=12)
-
         progresso_container.pack(side="bottom", fill="x", padx=60, pady=(0, 40))
 
         largura_proporcional = data["numero"] / data["total"]
@@ -455,8 +445,6 @@ class QuizUI(tk.Tk):
         ).pack(pady=(4, 0))
 
         self.update()
-        if Settings.EMULATE_ARDUINO:
-            time.sleep(2)
         self.config(cursor="")
 
     def __on_buzzer_activated(self, **data) -> None:
@@ -577,9 +565,7 @@ class QuizUI(tk.Tk):
                 col,
                 f"{pts}",
                 color=Settings.COR_TITULO,
-                font=tkfont.Font(
-                    family="Arial", size=48, weight="bold"
-                ),  # NOTE: Por que?
+                font=tkfont.Font(family="Arial", size=48, weight="bold"),
             ).pack()
             QuizUI.Create.Label(col, "pontos", color="#888", font=QuizFont.small).pack()
 
@@ -607,7 +593,6 @@ class QuizUI(tk.Tk):
 
     def clear(self) -> None:
         """Docs."""
-
         for w in self.winfo_children():
             w.destroy()
 
@@ -626,11 +611,10 @@ class QuizUI(tk.Tk):
 
     def game_init(self) -> None:
         """Docs."""
-
         port = QuizUI.MenuEntry.serial_port.get()
 
         if port == "(nenhuma)":
-            messagebox.showwarning("Warning", "Nenhuma porta seleta.")
+            messagebox.showwarning("Warning", "Nenhuma porta selecionada.")
             port = ""
 
         QuizModel.init(
@@ -641,7 +625,6 @@ class QuizUI(tk.Tk):
 
     def history_show(self) -> None:
         """Docs."""
-
         window = tk.Toplevel(self)
         window.title(Settings.History.WINDOW_TITLE)
         window.geometry(Settings.History.WINDOW_RES)
@@ -665,7 +648,6 @@ class QuizUI(tk.Tk):
         container = tk.Frame(window, bg=Settings.COR_BG)
         container.pack(fill="both", expand=True, padx=20)
 
-        # TODO: Structure will fail!
         for i, game in enumerate(reversed(QuizModel.session_history)):
             card = QuizUI.Create.Card(container)
             card.pack(fill="x", pady=5, ipady=5)
@@ -676,7 +658,6 @@ class QuizUI(tk.Tk):
             )
 
             QuizUI.Create.Label(card, texto, font=QuizFont.small).pack()
-            # NOTE: Pode causar erro caso game.winner = -1
             QuizUI.Create.Label(
                 card,
                 f"Vencedor: {game.player_1.name if (game.winner == 0) else game.player_2.name}",

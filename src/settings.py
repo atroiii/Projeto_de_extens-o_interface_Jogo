@@ -6,16 +6,10 @@ ReliefType: TypeAlias = Literal["raised", "sunken", "flat", "ridge", "solid", "g
 
 
 class Settings:
-    EMULATE_ARDUINO: bool = True
     BAUD_RATE: int = 9600
     THREAD_DELAY: float = 0.1
 
-    class Emu:
-        EMULATE_DELAY: bool = True
-        DELAY_IS_OPEN: float = 0.5
-        DELAY_IN_WAITING: float = 0.5
-
-    TITLE: str = "Quiz "
+    TITLE: str = "Quiz"
 
     KEY_BUZZER_ACTIVATE_0: str = "<F1>"
     KEY_BUZZER_ACTIVATE_1: str = "<F2>"
@@ -24,18 +18,18 @@ class Settings:
     KEY_WINDOW_MINIMIZE: str = "<Escape>"
 
     FONT_TITLE: str = "PressStart2P"
-    FONT_BASE: str = "PressStart2P"  # "Comic Sans Ms"
-    FONT_TITLE_SIZE: int = 2**5  # 42
-    FONT_BIG_SIZE: int = 2**4  # 16
-    FONT_MEDIAN_SIZE: int = 2**4  # 13
-    FONT_SMALL_SIZE: int = 2**3  # 11
-    FONT_CHOICE_SIZE: int = 2**3  # 13
-    FONT_BUZZER_SIZE: int = 2**5  # 22
+    FONT_BASE: str = "PressStart2P"
+    FONT_TITLE_SIZE: int = 2**5
+    FONT_BIG_SIZE: int = 2**4
+    FONT_MEDIAN_SIZE: int = 2**4
+    FONT_SMALL_SIZE: int = 2**3
+    FONT_CHOICE_SIZE: int = 2**3
+    FONT_BUZZER_SIZE: int = 2**5
 
     COR_TEXTO: str = "black"
     COR_BOTAO: str = "#3498db"
-    COR_CERTO: str = "#2ecc71"  # verde para resposta correta
-    COR_ERRADO: str = "#e74c3c"  # vermelho para resposta errada
+    COR_CERTO: str = "#2ecc71"
+    COR_ERRADO: str = "#e74c3c"
     FONTE_PADRAO: tuple[str, int] = ("Arial", 12)
 
     COR_CARD: str = "#FFFFFF"
@@ -59,18 +53,12 @@ class Settings:
     class Menu:
         TITLE: str = "TechQuiz"
         SUBTITLE: str = "10 perguntas | Quem errar passa a vez."
-
         ARDUINO_CONNECTION_MSG: str = "Conexão Arduino"
         BEGIN_BUTTON_MSG: str = " COMEÇAR "
-
         SCOREBOARD_BUTTON_MSG: str = "PLACAR DA SESSÃO"
 
     class History:
         WINDOW_TITLE: str = "Resultados da Sessão"
         WINDOW_RES: str = "450x500"
         TITLE: str = "RESULTADOS ATUAIS"
-
         NOGAMES_MSG: str = "Nenhum jogo finalizado nesta sessão."
-
-    class Emulator:
-        DEVICE_NUMBER: int = 10
