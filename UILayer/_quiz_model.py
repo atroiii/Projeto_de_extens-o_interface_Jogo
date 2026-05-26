@@ -163,6 +163,7 @@ class QuizUI(tk.Tk):
         self.fonte_grande = tkfont.Font(family=fonte_base, size=16, weight="bold")
         self.fonte_media = tkfont.Font(family=fonte_base, size=13)
         self.fonte_pequena = tkfont.Font(family=fonte_base, size=11)
+        self.fonte_mensagemclique = tkfont.Font(family=fonte_base, size=15, slant="italic")
         self.fonte_opcao = tkfont.Font(family=fonte_base, size=13, weight="bold")
         self.fonte_buzzer = tkfont.Font(family=fonte_base, size=22, weight="bold")
 
@@ -450,8 +451,8 @@ class QuizUI(tk.Tk):
             wait.pack(pady=16)
             self._label(wait, "⚡  QUEM SABE?", cor=COR_BUZZER,
                         fonte=self.fonte_buzzer).pack()
-            self._label(wait, "Aperte o botão no Arduino para responder!",
-                        cor="#aaa", fonte=self.fonte_pequena).pack(pady=(4, 0))
+            self._label(wait, "Aperte o botão para responder!(Ou F1/F2)",
+                        cor="#aaa", fonte=self.fonte_mensagemclique).pack(pady=(10, 4))
 
     def _on_buzzer_ativado(self, **dados):
         """Exibe tela de resposta e ativa os botões"""
