@@ -38,7 +38,7 @@ class QuizRes:
             file=Path("../res/tiles/tile_0151.png")
         )
         QuizRes.reload_ports_icon = QuizRes.load_image(
-            file=Path(".../res/tiles/tile_0209.png")
+            file=Path("../res/tiles/tile_0209.png")
         )
         QuizRes.ports_icon = QuizRes.load_image(file=Path("../res/tiles/tile_0132.png"))
         QuizRes.history_icon = QuizRes.load_image(

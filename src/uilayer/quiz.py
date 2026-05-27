@@ -2,7 +2,7 @@
 
 from typing import Final, Optional, Callable
 from settings import Settings
-from theme import Theme
+from theme import Theme, FontTheme
 from tkinter import messagebox
 import tkinter as tk
 import platform
@@ -35,7 +35,7 @@ class QuizUI(tk.Tk):
         def Label(
             master,
             text: str,
-            color: str = Settings.COR_TEXTO,
+            color: str = Settings.COR_TITULO,
             font: Optional[tkfont.Font] = None,
             **kw,
         ) -> tk.Label:
@@ -53,7 +53,7 @@ class QuizUI(tk.Tk):
             text: str,
             cmd: str | Callable,
             bg_color: str = Settings.COR_BOTAO,
-            fg_color: str = Settings.COR_TEXTO,
+            fg_color: str = Settings.COR_TITULO,
             font: Optional[tkfont.Font] = None,
             **kw,
         ) -> tk.Button:
@@ -188,13 +188,13 @@ class QuizUI(tk.Tk):
             )
             root.menu_ports.config(
                 bg=Settings.COR_BOTAO,
-                fg=Settings.COR_TEXTO,
+                fg=Settings.COR_TITULO,
                 font=QuizFont.small,
                 relief="flat",
                 activebackground=Settings.COR_HOVER,
                 highlightthickness=0,
             )
-            root.menu_ports["menu"].config(bg=Settings.COR_BOTAO, fg=Settings.COR_TEXTO)
+            root.menu_ports["menu"].config(bg=Settings.COR_BOTAO, fg=Settings.COR_TITULO)
             root.menu_ports.pack(side="left", padx=10)
 
             QuizUI.Create.Button(
@@ -224,6 +224,15 @@ class QuizUI(tk.Tk):
                 font=tkfont.Font(size=40),
                 image=QuizRes.theme_chance_icon,
             ).place(relx=0.98, rely=0.95, anchor="se", width=70, height=70)
+
+            QuizUI.Create.Button(
+                root,
+                "Aa",
+                lambda: FontTheme.chance(root),
+                font=tkfont.Font(family="Arial", size=16, weight="bold"),
+                bg_color=Settings.COR_CARD,
+                fg_color=Settings.COR_TITULO,
+            ).place(relx=0.92, rely=0.95, anchor="se", width=70, height=70)
 
             QuizUI.Create.Button(
                 root,

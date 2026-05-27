@@ -17,14 +17,15 @@ class Settings:
     KEY_WINDOW_FULLSCREEN: str = "<F11>"
     KEY_WINDOW_MINIMIZE: str = "<Escape>"
 
+    # Mude esse bloco no seu settings.py para iniciar com os tamanhos maiores:
     FONT_TITLE: str = "PressStart2P"
     FONT_BASE: str = "PressStart2P"
-    FONT_TITLE_SIZE: int = 2**5
-    FONT_BIG_SIZE: int = 2**4
-    FONT_MEDIAN_SIZE: int = 2**4
-    FONT_SMALL_SIZE: int = 2**3
-    FONT_CHOICE_SIZE: int = 2**3
-    FONT_BUZZER_SIZE: int = 2**5
+    FONT_TITLE_SIZE: int = 32   # Alterado de 2**5 (que dava 32, mas agora fixamos direto)
+    FONT_BIG_SIZE: int = 16     # Alterado de 16
+    FONT_MEDIAN_SIZE: int = 16  # Alterado de 16
+    FONT_SMALL_SIZE: int = 12   # Alterado de 8
+    FONT_CHOICE_SIZE: int = 14  # Alterado de 8
+    FONT_BUZZER_SIZE: int = 32  # Alterado de 32
 
     COR_TEXTO: str = "black"
     COR_BOTAO: str = "#3498db"

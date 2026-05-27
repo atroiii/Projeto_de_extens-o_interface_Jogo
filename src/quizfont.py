@@ -56,15 +56,17 @@ class QuizFont:
             font_load(Path("../res/fonts/PressStart2P-Regular.ttf"))
             fonts = tkfont.families()
             target_font = [font for font in fonts if "Press Start 2P" in font or "PressStart2P" in font]
-            assert len(target_font) > 0, f"ERRO: Fonte nao encontrada no sistema. Disponiveis: {fonts[:5]}"
+            assert len(target_font) > 0, f"ERRO: Fonte nao encontrada no sistema."
             Settings.FONT_TITLE = target_font[0]
             Settings.FONT_BASE = target_font[0]
 
+        # RECOMENDAÇÃO: Remover o weight="bold" de fontes pixeladas pequenas. 
+        # Elas já foram desenhadas para serem grossas o suficiente!
         QuizFont.title = tkfont.Font(
-            family=Settings.FONT_TITLE, size=Settings.FONT_TITLE_SIZE, weight="bold"
+            family=Settings.FONT_TITLE, size=Settings.FONT_TITLE_SIZE
         )
         QuizFont.big = tkfont.Font(
-            family=Settings.FONT_BASE, size=Settings.FONT_BIG_SIZE, weight="bold"
+            family=Settings.FONT_BASE, size=Settings.FONT_BIG_SIZE
         )
         QuizFont.median = tkfont.Font(
             family=Settings.FONT_BASE, size=Settings.FONT_MEDIAN_SIZE
@@ -73,8 +75,8 @@ class QuizFont:
             family=Settings.FONT_BASE, size=Settings.FONT_SMALL_SIZE
         )
         QuizFont.choice = tkfont.Font(
-            family=Settings.FONT_BASE, size=Settings.FONT_CHOICE_SIZE, weight="bold"
+            family=Settings.FONT_BASE, size=Settings.FONT_CHOICE_SIZE
         )
         QuizFont.buzzer = tkfont.Font(
-            family=Settings.FONT_BASE, size=Settings.FONT_BUZZER_SIZE, weight="bold"
+            family=Settings.FONT_BASE, size=Settings.FONT_BUZZER_SIZE
         )

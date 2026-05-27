@@ -1,6 +1,7 @@
 """Docs."""
 
 from settings import Settings
+from quizfont import QuizFont
 from tkinter import messagebox
 from tkinter import Tk
 from themesdata import TEMAS
@@ -39,3 +40,69 @@ class Theme:
         Settings.COR_P2 = tema["P2"]
 
         root.configure(bg=Settings.COR_BG)
+
+class FontTheme:
+    # 1. ATUALIZADO AQUI: Adicionamos os novos modos na lista para o botão saber que eles existem!
+    font_modes = ["pixel", "comic", "moderna", "retro_mono"]
+    current_index = 0
+
+    @staticmethod
+    def chance(root) -> None:
+        # Avança para a próxima fonte da lista toda vez que clica no botão "Aa"
+        FontTheme.current_index = (FontTheme.current_index + 1) % len(FontTheme.font_modes)
+        modo = FontTheme.font_modes[FontTheme.current_index]
+
+        if modo == "pixel":
+            Settings.FONT_TITLE = "PressStart2P"
+            Settings.FONT_BASE = "PressStart2P"
+            Settings.FONT_TITLE_SIZE = 32
+            Settings.FONT_BIG_SIZE = 16
+            Settings.FONT_MEDIAN_SIZE = 16
+            Settings.FONT_SMALL_SIZE = 12
+            Settings.FONT_CHOICE_SIZE = 14
+            Settings.FONT_BUZZER_SIZE = 32
+            # Recarrega o mapeamento da fonte TTF caso esteja no Windows
+            QuizFont.init()
+
+        elif modo == "comic":
+            Settings.FONT_TITLE = "Comic Sans MS"
+            Settings.FONT_BASE = "Comic Sans MS"
+            Settings.FONT_TITLE_SIZE = 24
+            Settings.FONT_BIG_SIZE = 16
+            Settings.FONT_MEDIAN_SIZE = 14
+            Settings.FONT_SMALL_SIZE = 11
+            Settings.FONT_CHOICE_SIZE = 12
+            Settings.FONT_BUZZER_SIZE = 24
+
+        # Seu trecho da fonte Arial adicionado perfeitamente aqui:
+        elif modo == "moderna":
+            Settings.FONT_TITLE = "Arial"
+            Settings.FONT_BASE = "Arial"
+            Settings.FONT_TITLE_SIZE = 26
+            Settings.FONT_BIG_SIZE = 16
+            Settings.FONT_MEDIAN_SIZE = 14
+            Settings.FONT_SMALL_SIZE = 12
+            Settings.FONT_CHOICE_SIZE = 13
+            Settings.FONT_BUZZER_SIZE = 26
+
+        # Seu trecho da fonte Courier New adicionado perfeitamente aqui:
+        elif modo == "retro_mono":
+            Settings.FONT_TITLE = "Courier New"
+            Settings.FONT_BASE = "Courier New"
+            Settings.FONT_TITLE_SIZE = 26
+            Settings.FONT_BIG_SIZE = 16
+            Settings.FONT_MEDIAN_SIZE = 14
+            Settings.FONT_SMALL_SIZE = 12
+            Settings.FONT_CHOICE_SIZE = 13
+            Settings.FONT_BUZZER_SIZE = 26
+
+        # Atualiza as fontes ativas no Tkinter com o tamanho e família escolhidos acima
+        QuizFont.title.config(family=Settings.FONT_TITLE, size=Settings.FONT_TITLE_SIZE)
+        QuizFont.big.config(family=Settings.FONT_BASE, size=Settings.FONT_BIG_SIZE)
+        QuizFont.median.config(family=Settings.FONT_BASE, size=Settings.FONT_MEDIAN_SIZE)
+        QuizFont.small.config(family=Settings.FONT_BASE, size=Settings.FONT_SMALL_SIZE)
+        QuizFont.choice.config(family=Settings.FONT_BASE, size=Settings.FONT_CHOICE_SIZE)
+        QuizFont.buzzer.config(family=Settings.FONT_BASE, size=Settings.FONT_BUZZER_SIZE)
+
+        # Redesenha o menu com a nova fonte aplicada
+        root.update_menu()
