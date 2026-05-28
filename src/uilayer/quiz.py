@@ -81,12 +81,16 @@ class QuizUI(tk.Tk):
         player_1_name: tk.StringVar
         player_2_name: tk.StringVar
         serial_port: tk.StringVar
+        p1_avatar_idx: int = 0  # Começa no primeiro avatar
+        p2_avatar_idx: int = 1  # Começa no segundo avatar
 
         @staticmethod
         def init() -> None:
             QuizUI.MenuEntry.player_1_name = tk.StringVar(value="A")
             QuizUI.MenuEntry.player_2_name = tk.StringVar(value="B")
             QuizUI.MenuEntry.serial_port = tk.StringVar(value="")
+            QuizUI.MenuEntry.p1_avatar_idx = 0
+            QuizUI.MenuEntry.p2_avatar_idx = 1
 
     class Screen:
         @staticmethod
@@ -116,48 +120,129 @@ class QuizUI(tk.Tk):
             row_names = tk.Frame(center, bg=Settings.COR_BG)
             row_names.pack(pady=30)
 
-            for i, (var, color) in enumerate(
-                [
-                    (QuizUI.MenuEntry.player_1_name, Settings.COR_P1),
-                    (QuizUI.MenuEntry.player_2_name, Settings.COR_P2),
-                ]
-            ):
-                card = QuizUI.Create.Card(row_names, padx=40, pady=30)
-                card.grid(row=0, column=i, padx=40)
+            lista_avatares = QuizRes.lista_todos_avatares
 
-                icon = QuizRes.player_1_icon if i == 0 else QuizRes.player_2_icon
+            # ==========================================
+            # CARD DO JOGADOR 1 (ESQUERDA)
+            # ==========================================
+            card_p1 = QuizUI.Create.Card(row_names, padx=40, pady=30)
+            card_p1.grid(row=0, column=0, padx=40)
 
-                QuizUI.Create.Label(
-                    card,
-                    f"Jogador {i + 1}",
-                    color=color,
-                    font=QuizFont.big,
-                    image=icon,
-                    compound="left",
-                ).pack()
+            QuizUI.Create.Label(
+                card_p1,
+                "Jogador 1",
+                color=Settings.COR_P1,
+                font=QuizFont.big,
+            ).pack()
 
-                entry: tk.Entry = tk.Entry(
-                    card,
-                    textvariable=var,
-                    font=QuizFont.median,
-                    bg=Settings.COR_BOTAO,
-                    fg=Settings.COR_TITULO,
-                    insertbackground=Settings.COR_TITULO,
-                    relief="flat",
-                    justify="center",
-                    width=20,
-                )
-                entry.pack(pady=15, ipady=10)
+            frame_p1 = tk.Frame(card_p1, bg=card_p1["bg"])
+            frame_p1.pack(pady=10)
 
-                def __focus_in(e, c=card, color_foco=color) -> None:
-                    c.config(highlightbackground=color_foco, highlightthickness=3)
+            lbl_avatar_p1 = tk.Label(
+                frame_p1, 
+                image=lista_avatares[QuizUI.MenuEntry.p1_avatar_idx], 
+                bg=card_p1["bg"]
+            )
 
-                def __focus_out(e, c=card):
-                    c.config(highlightbackground="#34495e", highlightthickness=1)
+            def mudar_avatar_p1(direcao):
+                QuizUI.MenuEntry.p1_avatar_idx = (QuizUI.MenuEntry.p1_avatar_idx + direcao) % len(lista_avatares)
+                lbl_avatar_p1.config(image=lista_avatares[QuizUI.MenuEntry.p1_avatar_idx])
 
-                entry.bind("<FocusIn>", __focus_in)
-                entry.bind("<FocusOut>", __focus_out)
+            QuizUI.Create.Button(
+                frame_p1, 
+                "<", 
+                lambda: mudar_avatar_p1(-1),
+                bg_color=Settings.COR_BOTAO, 
+                fg_color=Settings.COR_TITULO, 
+                font=QuizFont.small
+            ).pack(side="left", padx=10)
 
+            lbl_avatar_p1.pack(side="left", padx=10)
+
+            QuizUI.Create.Button(
+                frame_p1, 
+                ">", 
+                lambda: mudar_avatar_p1(1),
+                bg_color=Settings.COR_BOTAO, 
+                fg_color=Settings.COR_TITULO, 
+                font=QuizFont.small
+            ).pack(side="left", padx=10)
+
+            # Caixa de texto nativa do Tkinter para o Jogador 1
+            entry_p1 = tk.Entry(
+                card_p1,
+                textvariable=QuizUI.MenuEntry.player_1_name,
+                font=QuizFont.median,
+                bg=Settings.COR_BOTAO,
+                fg=Settings.COR_TITULO,
+                insertbackground=Settings.COR_TITULO,
+                relief="flat",
+                justify="center",
+                width=15
+            )
+            entry_p1.pack(pady=(10, 0), ipady=4)
+
+            # ==========================================
+            # CARD DO JOGADOR 2 (DIREITA)
+            # ==========================================
+            card_p2 = QuizUI.Create.Card(row_names, padx=40, pady=30)
+            card_p2.grid(row=0, column=1, padx=40)
+
+            QuizUI.Create.Label(
+                card_p2,
+                "Jogador 2",
+                color=Settings.COR_P2,
+                font=QuizFont.big,
+            ).pack()
+
+            frame_p2 = tk.Frame(card_p2, bg=card_p2["bg"])
+            frame_p2.pack(pady=10)
+
+            lbl_avatar_p2 = tk.Label(
+                frame_p2, 
+                image=lista_avatares[QuizUI.MenuEntry.p2_avatar_idx], 
+                bg=card_p2["bg"]
+            )
+
+            def mudar_avatar_p2(direcao):
+                QuizUI.MenuEntry.p2_avatar_idx = (QuizUI.MenuEntry.p2_avatar_idx + direcao) % len(lista_avatares)
+                lbl_avatar_p2.config(image=lista_avatares[QuizUI.MenuEntry.p2_avatar_idx])
+
+            QuizUI.Create.Button(
+                frame_p2, 
+                "<", 
+                lambda: mudar_avatar_p2(-1),
+                bg_color=Settings.COR_BOTAO, 
+                fg_color=Settings.COR_TITULO, 
+                font=QuizFont.small
+            ).pack(side="left", padx=10)
+
+            lbl_avatar_p2.pack(side="left", padx=10)
+
+            QuizUI.Create.Button(
+                frame_p2, 
+                ">", 
+                lambda: mudar_avatar_p2(1),
+                bg_color=Settings.COR_BOTAO, 
+                fg_color=Settings.COR_TITULO, 
+                font=QuizFont.small
+            ).pack(side="left", padx=10)
+
+            # Caixa de texto nativa do Tkinter para o Jogador 2
+            entry_p2 = tk.Entry(
+                card_p2,
+                textvariable=QuizUI.MenuEntry.player_2_name,
+                font=QuizFont.median,
+                bg=Settings.COR_BOTAO,
+                fg=Settings.COR_TITULO,
+                insertbackground=Settings.COR_TITULO,
+                relief="flat",
+                justify="center",
+                width=15
+            )
+            entry_p2.pack(pady=(10, 0), ipady=4)
+
+            # Conexão Arduino Card
             arduino_card = QuizUI.Create.Card(center, padx=30, pady=20)
             arduino_card.pack(pady=20)
 
@@ -625,6 +710,18 @@ class QuizUI(tk.Tk):
         if port == "(nenhuma)":
             messagebox.showwarning("Warning", "Nenhuma porta selecionada.")
             port = ""
+
+        # LISTA DE AVATARES IDENTICA AO DO PASSO 2
+        lista_avatares = [
+            QuizRes.player_1_icon, 
+            QuizRes.player_2_icon,
+            QuizRes.question_icon,
+            QuizRes.winner_icon
+        ]
+
+        # RECONFIGURA OS ICONES OFICIAIS COM OS QUE OS JOGADORES ESCOLHERAM NAS SETAS!
+        QuizRes.player_1_icon = lista_avatares[QuizUI.MenuEntry.p1_avatar_idx]
+        QuizRes.player_2_icon = lista_avatares[QuizUI.MenuEntry.p2_avatar_idx]
 
         QuizModel.init(
             QuizUI.MenuEntry.player_1_name.get(),
