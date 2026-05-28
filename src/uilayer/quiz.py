@@ -139,8 +139,8 @@ class QuizUI(tk.Tk):
             frame_p1.pack(pady=10)
 
             lbl_avatar_p1 = tk.Label(
-                frame_p1, 
-                image=lista_avatares[QuizUI.MenuEntry.p1_avatar_idx], 
+                frame_p1,
+                image=lista_avatares[QuizUI.MenuEntry.p1_avatar_idx],
                 bg=card_p1["bg"]
             )
 
@@ -149,22 +149,22 @@ class QuizUI(tk.Tk):
                 lbl_avatar_p1.config(image=lista_avatares[QuizUI.MenuEntry.p1_avatar_idx])
 
             QuizUI.Create.Button(
-                frame_p1, 
-                "<", 
+                frame_p1,
+                "<",
                 lambda: mudar_avatar_p1(-1),
-                bg_color=Settings.COR_BOTAO, 
-                fg_color=Settings.COR_TITULO, 
+                bg_color=Settings.COR_BOTAO,
+                fg_color=Settings.COR_TITULO,
                 font=QuizFont.small
             ).pack(side="left", padx=10)
 
             lbl_avatar_p1.pack(side="left", padx=10)
 
             QuizUI.Create.Button(
-                frame_p1, 
-                ">", 
+                frame_p1,
+                ">",
                 lambda: mudar_avatar_p1(1),
-                bg_color=Settings.COR_BOTAO, 
-                fg_color=Settings.COR_TITULO, 
+                bg_color=Settings.COR_BOTAO,
+                fg_color=Settings.COR_TITULO,
                 font=QuizFont.small
             ).pack(side="left", padx=10)
 
@@ -199,8 +199,8 @@ class QuizUI(tk.Tk):
             frame_p2.pack(pady=10)
 
             lbl_avatar_p2 = tk.Label(
-                frame_p2, 
-                image=lista_avatares[QuizUI.MenuEntry.p2_avatar_idx], 
+                frame_p2,
+                image=lista_avatares[QuizUI.MenuEntry.p2_avatar_idx],
                 bg=card_p2["bg"]
             )
 
@@ -209,22 +209,22 @@ class QuizUI(tk.Tk):
                 lbl_avatar_p2.config(image=lista_avatares[QuizUI.MenuEntry.p2_avatar_idx])
 
             QuizUI.Create.Button(
-                frame_p2, 
-                "<", 
+                frame_p2,
+                "<",
                 lambda: mudar_avatar_p2(-1),
-                bg_color=Settings.COR_BOTAO, 
-                fg_color=Settings.COR_TITULO, 
+                bg_color=Settings.COR_BOTAO,
+                fg_color=Settings.COR_TITULO,
                 font=QuizFont.small
             ).pack(side="left", padx=10)
 
             lbl_avatar_p2.pack(side="left", padx=10)
 
             QuizUI.Create.Button(
-                frame_p2, 
-                ">", 
+                frame_p2,
+                ">",
                 lambda: mudar_avatar_p2(1),
-                bg_color=Settings.COR_BOTAO, 
-                fg_color=Settings.COR_TITULO, 
+                bg_color=Settings.COR_BOTAO,
+                fg_color=Settings.COR_TITULO,
                 font=QuizFont.small
             ).pack(side="left", padx=10)
 
@@ -711,17 +711,14 @@ class QuizUI(tk.Tk):
             messagebox.showwarning("Warning", "Nenhuma porta selecionada.")
             port = ""
 
-        # LISTA DE AVATARES IDENTICA AO DO PASSO 2
-        lista_avatares = [
-            QuizRes.player_1_icon, 
-            QuizRes.player_2_icon,
-            QuizRes.question_icon,
-            QuizRes.winner_icon
-        ]
+        # USA A MESMA LISTA DO MENU
+        lista_avatares = QuizRes.lista_todos_avatares
 
-        # RECONFIGURA OS ICONES OFICIAIS COM OS QUE OS JOGADORES ESCOLHERAM NAS SETAS!
-        QuizRes.player_1_icon = lista_avatares[QuizUI.MenuEntry.p1_avatar_idx]
-        QuizRes.player_2_icon = lista_avatares[QuizUI.MenuEntry.p2_avatar_idx]
+        p1_idx = QuizUI.MenuEntry.p1_avatar_idx % len(lista_avatares)
+        p2_idx = QuizUI.MenuEntry.p2_avatar_idx % len(lista_avatares)
+
+        QuizRes.player_1_icon = lista_avatares[p1_idx]
+        QuizRes.player_2_icon = lista_avatares[p2_idx]
 
         QuizModel.init(
             QuizUI.MenuEntry.player_1_name.get(),
