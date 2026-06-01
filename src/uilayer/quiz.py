@@ -617,7 +617,70 @@ class QuizUI(tk.Tk):
             QuizModel.current_player = data["proximo_jogador"]
             self.after(2200, lambda: QuizUI.Screen.try_again(self))
         else:
-            self.after(1800 if data["acertou"] else 2000, QuizModel.Question.next)
+            # SE ACERTOU: vai direto para a próxima pergunta após o delay
+            if data["acertou"]:
+                self.after(1800, QuizModel.Question.next)
+            # SE ERROU (e não tem segunda chance, ou seja, ambos erraram): mostra a resposta certa antes
+            else:
+                self.after(2000, lambda: self.show_correct_answer())
+
+    def show_correct_answer(self) -> None:
+        """Tela exibida quando ambos os jogadores erram, revelando a resposta certa."""
+        self.clear()
+        
+        # Pega os dados da pergunta atual do modelo do quiz
+        q = QuizModel.questions[QuizModel.q_index]
+        
+        # Puxa o índice da resposta usando a sua chave exata: "resposta"
+        idx_correto = q.get("resposta", 0) 
+        letras = ["A", "B", "C", "D"]
+        texto_correto = q["opcoes"][idx_correto]
+
+        tk.Frame(self, bg=Settings.COR_BG).pack(expand=True)
+
+        # Título da tela avisando que ninguém pontuou
+        QuizUI.Create.Label(
+            self,
+            " NINGUÉM ACERTOU!",
+            color=Settings.COR_ERRADO,
+            font=QuizFont.title,
+            image=QuizRes.fail_ans,
+            compound="left",
+        ).pack(pady=10)
+
+        QuizUI.Create.Label(
+            self,
+            "A resposta correta era:",
+            color="#aaa",
+            font=QuizFont.small,
+        ).pack(pady=(0, 20))
+
+        # Card destacando a alternativa certa com borda na cor de acerto
+        card_resposta = QuizUI.Create.Card(self, padx=40, pady=25)
+        card_resposta.config(highlightbackground=Settings.COR_CERTO, highlightthickness=2)
+        card_resposta.pack(padx=60, pady=10, fill="x")
+
+        QuizUI.Create.Label(
+            card_resposta,
+            text=f"{letras[idx_correto]}) {texto_correto}",
+            color=Settings.COR_CERTO,
+            font=QuizFont.big,
+            wraplength=600,
+            justify="center"
+        ).pack()
+
+        # Botão estilizado para avançar manualmente para a próxima pergunta
+        QuizUI.Create.Button(
+            self,
+            "  PRÓXIMA PERGUNTA  ",
+            QuizModel.Question.next,
+            bg_color=Settings.COR_OURO,
+            fg_color="#1a1a2e",
+            font=QuizFont.big,
+        ).pack(pady=40, ipadx=10, ipady=5)
+
+        tk.Frame(self, bg=Settings.COR_BG).pack(expand=True)
+        self.update()
 
     def __on_game_fisished(self, **data) -> None:
         """Exibe tela de resultado"""
