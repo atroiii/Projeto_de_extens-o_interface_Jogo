@@ -15,7 +15,7 @@
 
 ## 📖 Sobre o projeto
 
-O **Tech Quiz** nasceu como um projeto de extensão universitária. A proposta inicial era simples: desenvolver apenas uma interface gráfica. Nosso grupo foi além — criamos um jogo de quiz completo com **integração física via Arduino**, conectando hardware e software em uma experiência interativa e divertida.
+O **Tech Quiz** nasceu como um projeto de extensão universitária. A proposta inicial era simples: desenvolver apenas uma interface gráfica. Nosso grupo foi além, criamos um jogo de quiz completo com **integração física via Arduino**, conectando hardware e software em uma experiência interativa e divertida.
 
 O jogo suporta dois jogadores que competem em tempo real usando **buzzers físicos** conectados ao Arduino. Quando um jogador pressiona o buzzer, o Arduino envia uma string serial ao Python, que identifica o jogador e processa a resposta. A interface, desenvolvida em **Tkinter**, exibe perguntas, placar e histórico de partidas — tudo com suporte a temas visuais e múltiplos modos de tela.
 
