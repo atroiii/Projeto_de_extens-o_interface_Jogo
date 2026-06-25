@@ -25,16 +25,16 @@ O jogo suporta dois jogadores que competem em tempo real usando **buzzers físic
 ![alt](<screenshots/menu.png>)
 
 ### Questão
-![alt](<screenshots/tela_inicial>)
+![alt](<screenshots/tela_inicial.png>)
 
 ### Acerto
-![alt](<screenshots/acertou>)
+![alt](<screenshots/acertou.png>)
 
 ### End
-![alt](<screenshots/resultado_final.png.png>)
+![alt](<screenshots/resultado_final.png>)
 
 ### Histórico:
-![alt](<screenshots/resultado.png.png>)
+![alt](<screenshots/resultado.png>)
 
 ## ✨ Funcionalidades
 
