@@ -48,9 +48,6 @@ O jogo suporta dois jogadores que competem em tempo real usando **buzzers físic
 
 ---
 
-### Histórico:
-![alt](<screenshots/Captura de tela de 2026-04-13 14-44-01.png>)
-
 ## 🔌 Como funciona a integração com o Arduino
 
 ```
