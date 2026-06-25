@@ -196,7 +196,7 @@ Na tela de configurações, selecione a porta serial do Arduino, insira os nomes
 | Asset | Autor | Licença |
 |---|---|---|
 | Press Start 2P (fonte) | © 2012 The Press Start 2P Project Authors (cody@zone38.net) | SIL Open Font License 1.1  |
-| Tiny Dungeon 1.0 (sprites) | © 2022 Kenney (kenney.nl) | CC0 1.0 Universal  |
+| Tiny Dungeon 1.0 (sprites) | © 2022 Kenney ([kenney.nl](https://www.kenney.nl/)) | CC0 1.0 Universal  |
 
 
 ---
