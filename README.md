@@ -22,19 +22,16 @@ O jogo suporta dois jogadores que competem em tempo real usando **buzzers físic
 ---
 
 ## Menu:
-![alt](<screenshots/Captura de tela de 2026-04-13 13-29-31.png>)
+![alt](<screenshots/menu.png>)
 
 ### Questão
-![alt](<screenshots/Captura de tela de 2026-04-13 14-41-22.png>)
-
-### Empate
-![alt](<screenshots/Captura de tela de 2026-04-13 14-41-33.png>)
+![alt](<screenshots/tela_inicial.png>)
 
 ### Acerto
 ![alt](<screenshots/Captura de tela de 2026-04-13 14-42-43.png>)
 
 ### End
-![alt](<screenshots/Captura de tela de 2026-04-13 14-43-37.png>)
+![alt](<screenshots/resultado_final.png>)
 
 ## ✨ Funcionalidades
 
@@ -48,7 +45,7 @@ O jogo suporta dois jogadores que competem em tempo real usando **buzzers físic
 ---
 
 ### Histórico:
-![alt](<screenshots/Captura de tela de 2026-04-13 14-44-01.png>)
+![alt](<screenshots/resultando.png>)
 
 ## 🔌 Como funciona a integração com o Arduino
 
