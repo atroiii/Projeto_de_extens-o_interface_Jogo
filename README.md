@@ -67,7 +67,14 @@ O jogo suporta dois jogadores que competem em tempo real usando **buzzers físic
         │
         ▼
 [ QuizUI atualiza a interface em tempo real ]
+
 ```
+
+## Imagem Arduino:
+![alt](<screenshots/1.png>)
+![alt](<screenshots/2.png>)
+![alt](<screenshots/3.png>)
+![alt](<screenshots/4.png>)
 
 O código do Arduino (`buzzer.ino`) monitora dois botões físicos e envia `"1"` ou `"2"` pela porta serial quando detecta um acionamento. O Python lê essa string e dispara o evento correspondente no modelo do jogo.
 
